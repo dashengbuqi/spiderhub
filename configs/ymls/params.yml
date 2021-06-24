@@ -1,0 +1,114 @@
+Env: Dev
+Common:
+  Dev:
+    Virtual: 54        #虚拟用户
+    TempCateId: 445       #临时分类ID
+    AppletsTopCategory: 1   #传感器顶级分类
+    AttachUrl: "http://192.168.1.40:8090"
+    AttachPath: "D:/attachment" #"/home/wwwroot/sensorexpert/application/attachment"
+  Test:
+    Virtual: 54        #虚拟用户
+    TempCateId: 445       #临时分类ID
+    AppletsTopCategory: 1   #传感器顶级分类
+    AttachUrl: "http://192.168.1.45:8090"
+    AttachPath: "/home/wwwroot/sensorexpert/application/attachment"
+  Prod:
+    Virtual: 0        # 线上虚拟用户
+    TempCateId: 445       #临时分类ID
+    AppletsTopCategory: 1   #传感器顶级分类
+    AttachUrl: "https://static.sensorexpert.com.cn"
+    AttachPath: "/home/wwwroot/sensorexpert/application/attachment"
+Log:
+  Dev:
+    Level: debug        #Emergency   Alert  Critical  Error  Warning  Info  Debug
+    Path: runtime/logs
+    Name: default
+  Test:
+    Level: debug        #Emergency   Alert  Critical  Error  Warning  Info  Debug
+    Path: runtime/logs
+    Name: default
+  Prod:
+    Level: error
+    Path: runtime/logs
+    Name: default
+Redis:
+  Dev:
+    Proto: tcp    #tcp|udp
+    Addr: 192.168.1.40:6379
+    Password: ""
+    Db: 0
+    MaxActive: 0     # 最大活动连接数，值为0时表示不限制
+    MaxIdle: 10 #最大空闲连接数
+    IdleTimeout: 600 #空闲连接的超时时间，超过该时间则关闭连接。单位为秒。默认值是5分钟。值为0时表示不关闭空闲连接。此值应该总是大于redis服务的超时时间。
+    Prefix: ""  #键名前缀
+  Test:
+    Proto: tcp    #tcp|udp
+    Addr: 192.168.1.40:6379
+    Password: ""
+    Db: 0
+    MaxActive: 0     # 最大活动连接数，值为0时表示不限制
+    MaxIdle: 10 #最大空闲连接数
+    IdleTimeout: 600 #空闲连接的超时时间，超过该时间则关闭连接。单位为秒。默认值是5分钟。值为0时表示不关闭空闲连接。此值应该总是大于redis服务的超时时间。
+    Prefix: ""  #键名前缀
+  Prod:
+    Proto: tcp    #tcp|udp
+    Addr: 192.168.1.40:6379
+    Password: ""
+    Db: 0
+    MaxActive: 0     # 最大活动连接数，值为0时表示不限制
+    MaxIdle: 10 #最大空闲连接数
+    IdleTimeout: 600 #空闲连接的超时时间，超过该时间则关闭连接。单位为秒。默认值是5分钟。值为0时表示不关闭空闲连接。此值应该总是大于redis服务的超时时间。
+    Prefix: ""  #键名前缀
+Mysql:
+  Dev:
+    Host: 192.168.1.40:3306
+    User: root
+    Password: "123456"
+    Dbs:
+      - sensor_applets
+      - sensor_chanpin
+      - sensor_main
+      - sensor_product
+  Test:
+    Host: 192.168.1.40:3306
+    User: root
+    Password: "123456"
+    Dbs:
+      - sensor_applets
+      - sensor_chanpin
+      - sensor_main
+      - sensor_product
+  Prod:
+    Host: "172.18.160.93:3306"
+    User: "swiopr"
+    Password: "Sirui2019"
+    Dbs:
+      - sensor_applets
+      - sensor_chanpin
+      - sensor_main
+      - sensor_product
+Mongo:
+  Dev:
+    Host: "192.168.1.40"
+    Port: "27017"
+    User: ""
+    Password: ""
+    Dbs:
+      - sensor_main
+      - sensor_chat
+  Test:
+    Host: "192.168.1.40"
+    Port: "27017"
+    User: ""
+    Password: ""
+    Dbs:
+      - sensor_main
+      - sensor_chat
+  Prod:
+    Host: "192.168.1.40"
+    Port: "27017"
+    User: ""
+    Password: ""
+    Dbs:
+      - sensor_main
+      - sensor_chat
