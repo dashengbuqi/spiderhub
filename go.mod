@@ -18,6 +18,7 @@ require (
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect
 	github.com/streadway/amqp v1.0.0
 	github.com/temoto/robotstxt v1.1.2 // indirect
+	go.mongodb.org/mongo-driver v1.7.1
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 )
