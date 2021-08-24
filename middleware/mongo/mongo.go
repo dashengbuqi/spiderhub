@@ -10,9 +10,8 @@ var client *qmgo.Client
 var MongoEngine map[string]*qmgo.Database
 
 const (
-	MONGO_MAIN   = "sensor_main"
-	MONGO_CHAT   = "sensor_chat"
-	MONGO_TONGJI = "sensor_tongji"
+	MONGO_MAIN = "spider_main"
+	MONGO_DATA = "spider_data"
 )
 
 func init() {
