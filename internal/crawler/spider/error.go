@@ -12,7 +12,7 @@ import (
 )
 
 func (this *Spider) onError(resp *colly.Response, e error) {
-	this.log <- helper.FmtLog(common.LOG_ERROR, e.Error()+": "+resp.Request.URL.String(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+	this.outLog <- helper.FmtLog(common.LOG_ERROR, e.Error()+": "+resp.Request.URL.String(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 
 	h := md5.New()
 	h.Write([]byte(strings.ToLower(resp.Request.URL.String())))

@@ -4,8 +4,9 @@ go 1.16
 
 require (
 	github.com/PuerkitoBio/goquery v1.7.1 // indirect
-	github.com/antchfx/htmlquery v1.2.3 // indirect
+	github.com/antchfx/htmlquery v1.2.3
 	github.com/antchfx/xmlquery v1.3.6 // indirect
+	github.com/antchfx/xpath v1.1.10
 	github.com/astaxie/beego v1.12.3
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/go-xorm/xorm v0.7.9
@@ -13,6 +14,7 @@ require (
 	github.com/gocolly/colly v1.2.0
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/kennygrant/sanitize v1.2.4 // indirect
+	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/qiniu/qmgo v1.0.1
 	github.com/robertkrimen/otto v0.0.0-20210614181706-373ff5438452
 	github.com/saintfish/chardet v0.0.0-20120816061221-3af4cd4741ca // indirect

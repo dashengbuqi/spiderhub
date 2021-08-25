@@ -1,9 +1,11 @@
 package common
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 const (
 	//设置前缀
 	PREFIX_LOG  = "crawlerLog"
-	prefix_DATA = "crawlerData"
+	PREFIX_DATA = "crawlerData"
 
 	EXEC_STATUS_FINISH  = 0
 	EXEC_STATUS_RUNNING = 1
@@ -64,13 +66,13 @@ type LogLevel struct {
 
 //通信数据
 type Communication struct {
-	Method     int         `json:"method"`
-	DebugId    int         `json:"debug_id"`
-	UserId     int         `json:"user_id"`
-	AppId      int         `json:"app_id"`
-	Abort      bool        `json:"abort"`
-	Auto       bool        `json:"auto"`
-	CrawlField interface{} `json:"crawl_field"`
-	Unique     string      `json:"unique"`
-	Content    string      `json:"content"`
+	Method     int                `json:"method"`
+	DebugId    int                `json:"debug_id"`
+	UserId     int                `json:"user_id"`
+	AppId      primitive.ObjectID `json:"app_id"`
+	Abort      bool               `json:"abort"`
+	Auto       bool               `json:"auto"`
+	CrawlField interface{}        `json:"crawl_field"`
+	Token      string             `json:"token"`
+	Content    string             `json:"content"`
 }

@@ -10,6 +10,7 @@ github.com/antchfx/htmlquery
 ## explicit
 github.com/antchfx/xmlquery
 # github.com/antchfx/xpath v1.1.10
+## explicit
 github.com/antchfx/xpath
 # github.com/astaxie/beego v1.12.3
 ## explicit
@@ -67,6 +68,9 @@ github.com/klauspost/compress/zstd
 github.com/klauspost/compress/zstd/internal/xxhash
 # github.com/leodido/go-urn v1.2.0
 github.com/leodido/go-urn
+# github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
+## explicit
+github.com/oliveagle/jsonpath
 # github.com/pkg/errors v0.9.1
 github.com/pkg/errors
 # github.com/qiniu/qmgo v1.0.1

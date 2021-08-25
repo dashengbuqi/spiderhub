@@ -1,4 +1,4 @@
-package serv
+package crawler
 
 import (
 	"encoding/json"

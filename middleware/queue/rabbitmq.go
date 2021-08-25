@@ -17,7 +17,7 @@ import (
 var (
 	uri        string
 	queueOnce  sync.Once
-	RabbitConn *base
+	RabbitConn *Base
 )
 
 type Conn struct {
@@ -32,11 +32,12 @@ type Channel struct {
 	RoutingKey   string
 	Reliable     bool
 	Durable      bool
+	AutoDelete   bool
 	ChannelId    string
 	Channel      *amqp.Channel
 }
 
-type base struct {
+type Base struct {
 	Conn     *Conn
 	Channels map[string]*Channel
 }
@@ -50,9 +51,9 @@ func init() {
 	RabbitConn = getQueueConn()
 }
 
-func getQueueConn() (bs *base) {
+func getQueueConn() (bs *Base) {
 	queueOnce.Do(func() {
-		bs = &base{
+		bs = &Base{
 			Conn:     &Conn{rabbitUri: uri},
 			Channels: map[string]*Channel{},
 		}
@@ -60,18 +61,18 @@ func getQueueConn() (bs *base) {
 	return bs
 }
 
-func (this *base) confirmOne(c <-chan amqp.Confirmation) {
+func (this *Base) confirmOne(c <-chan amqp.Confirmation) {
 	<-c
 }
 
-func (this *base) buildToken(c *Channel) string {
+func (this *Base) buildToken(c *Channel) string {
 	token := c.Exchange + ":" + c.ExchangeType + ":" + c.RoutingKey + ":" + strconv.FormatBool(c.Durable) + ":" + strconv.FormatBool(c.Reliable)
 	m := md5.New()
 	m.Write([]byte(token))
 	return hex.EncodeToString(m.Sum(nil))
 }
 
-func (this *base) refresh(c *Channel) error {
+func (this *Base) refresh(c *Channel) error {
 	this.Conn.Locker.Lock()
 	defer this.Conn.Locker.Unlock()
 
@@ -109,7 +110,7 @@ func (this *base) refresh(c *Channel) error {
 	return nil
 }
 
-func (this *base) Publish(c *Channel, body []byte) error {
+func (this *Base) Publish(c *Channel, body []byte) error {
 	c.ChannelId = this.buildToken(c)
 
 	if this.Channels[c.ChannelId] == nil {
@@ -154,7 +155,7 @@ func (this *base) Publish(c *Channel, body []byte) error {
 	return err
 }
 
-func (this *base) Consume(c *Channel, out chan<- []byte) {
+func (this *Base) Consume(c *Channel, out chan<- []byte) {
 	c.ChannelId = this.buildToken(c)
 
 	if this.Channels[c.ChannelId] == nil {

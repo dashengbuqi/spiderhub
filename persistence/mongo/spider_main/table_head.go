@@ -12,7 +12,7 @@ import (
 type TableHead struct {
 	Id        primitive.ObjectID `bson:"_id"`
 	Target    int                `bson:"target"`
-	TargetId  int64              `bson:"target_id"`
+	TargetId  primitive.ObjectID `bson:"target_id"`
 	Content   string             `bson:"content"`
 	UpdatedAt int64              `bson:"updated_at"`
 	CreatedAt int64              `bson:"created_at"`
@@ -31,7 +31,7 @@ func NewTableHead() *TableHeadImpl {
 }
 
 //更新数据
-func (this *TableHeadImpl) Modify(target int, appid int64, content []byte) error {
+func (this *TableHeadImpl) Modify(target int, appid primitive.ObjectID, content []byte) error {
 	var item TableHead
 
 	err := this.Collect.Find(this.Ctx, bson.M{"target": target, "target_id": appid}).One(&item)

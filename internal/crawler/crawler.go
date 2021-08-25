@@ -1,7 +1,18 @@
-package rules
+package crawler
+
+import (
+	"encoding/json"
+	"github.com/antchfx/htmlquery"
+	"github.com/antchfx/xpath"
+	"github.com/dashengbuqi/spiderhub"
+	"github.com/oliveagle/jsonpath"
+	"github.com/robertkrimen/otto"
+	"regexp"
+	"strings"
+)
 
 const (
-	SELECTORTYPE_XPATH = iota
+	SELECTORTYPE_XPATH int64 = iota
 	SELECTORTYPE_JSONPATH
 	SELECTORTYPE_REGEX
 )
@@ -152,13 +163,28 @@ const (
 	//当整个网页完成抽取时回调此函数。一般在此回调中做一些数据整理的操作，也可以继续发送网络请求，把返回的数据整理后放到data中返回。
 	FUNC_AFTER_EXTRACT_PAGE = "afterExtractPage"
 
-	CONTAINER_STRING = "string"
-	CONTAINER_ARRAY  = "array"
-	CONTAINER_MAP    = "map"
-	CONTAINER_INT    = "int"
+	VALUE_STRING = "string"
+	VALUE_ARRAY  = "array"
+	VALUE_MAP    = "map"
+	VALUE_INT    = "int"
 
 	BODY_TEXT = 0
 	BODY_HTML = 1
+)
+
+var (
+	ValueArr = []string{
+		VALUE_STRING,
+		VALUE_MAP,
+		VALUE_ARRAY,
+		VALUE_INT,
+	}
+)
+
+const (
+	EXTRACT_NORMAL      = iota //正常提取内容 Extract
+	EXTRACT_URLCONTEXT         //发现内容链接
+	EXTRACT_ATTACHEDURL        //内容在其它链接上
 )
 
 type FieldStash struct {
@@ -219,4 +245,284 @@ type FieldStash struct {
 	Temporary bool `json:"temporary"`
 	// 回调函数
 	Func string `json:"func"`
+}
+
+const (
+	USERAGENT_COMPUTER int = iota
+	USERAGENT_ANDROID
+	USERAGENT_IOS
+	USERAGENT_MOBILE
+	USERAGENT_EMPTY
+
+	HTTP_STATUS_SUCCESS               = 200
+	HTTP_STATUS_MOVED_PERMANENTLY     = 301
+	HTTP_STATUS_MOVE_TEMPORARILY      = 302
+	HTTP_STATUS_BAD                   = 400
+	HTTP_STATUS_UNAUTHORIZED          = 401
+	HTTP_STATUS_PAYMENT_REQUIRED      = 402
+	HTTP_STATUS_FORBIDDEN             = 403
+	HTTP_STATUS_NOT_FOUND             = 404
+	HTTP_STATUS_METHOD_NOT            = 405
+	HTTP_STATUS_INTERNAL_SERVER_ERROR = 500
+	HTTP_STATUS_BAD_GATEWAY           = 502
+	HTTP_STATUS_SERVICE_UNAVAILABLE   = 503
+	HTTP_STATUS_GATEWAY_TIMEOUT       = 504
+)
+
+type CrawlerConfig struct {
+	Name             string           `json:"name"`
+	Domains          []interface{}    `json:"domains"`
+	MaxLimit         int              `json:"max_limit"`
+	ScanUrls         []interface{}    `json:"scan_urls"`
+	HelperRegex      []*regexp.Regexp `json:"helper_regex"`
+	ContentRegex     []*regexp.Regexp `json:"content_regex"`
+	Fields           []*FieldStash    `json:"fields"`
+	Timeout          int64            `json:"timeout"`
+	Delay            int64            `json:"delay"`
+	UserAgent        int              `json:"user_agent"`
+	AcceptHttpStatus []int            `json:"accept_http_status"`
+	AutoFindUrls     bool             `json:"auto_find_urls"`
+}
+
+type Application struct {
+	Rules     map[string]interface{}
+	Container *otto.Otto
+	RuleName  string
+	oo        *otto.Object
+	Start     bool
+}
+
+func NewApplication() *Application {
+	return &Application{
+		Rules:     make(map[string]interface{}),
+		Container: otto.New(),
+	}
+}
+
+func (this *Application) Init(body string) error {
+	var err error
+	SelectorType, _ := this.Container.Object(`({Xpath:0,JsonPath:1,Regex:2})`)
+	err = this.Container.Set("SelectorType", SelectorType)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err)
+	}
+	UserAgent, _ := this.Container.Object(`({Computer:0,Android:1,IOS:2,Mobile:3,Empty:4,})`)
+	err = this.Container.Set("UserAgent", UserAgent)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err)
+	}
+	SourceType, _ := this.Container.Object(`({Normal:0,UrlContext:1,AttachedUrl:2})`)
+	err = this.Container.Set("ExtractType", SourceType)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err)
+	}
+	Typ, _ := this.Container.Object(`({String: "string",Array:"array",Map:"map"})`)
+	err = this.Container.Set("Container", Typ)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err)
+	}
+	_, err = this.Container.Run(body)
+	return err
+}
+
+func (this *Application) unpackBoolean(key string) {
+	res, _ := this.oo.Get(key)
+	if res.IsUndefined() {
+		this.Rules[key] = false
+		return
+	}
+	value, _ := res.ToBoolean()
+	this.Rules[key] = value
+}
+
+func (this *Application) unpackInt(key string) {
+	res, _ := this.oo.Get(key)
+	if res.IsUndefined() {
+		this.Rules[key] = 0
+		return
+	}
+	value, _ := res.ToInteger()
+	this.Rules[key] = value
+}
+
+func (this *Application) unpackArray(key string) {
+	res, _ := this.oo.Get(key)
+	if res.IsUndefined() {
+		this.Rules[key] = []interface{}{}
+		return
+	}
+	if res.IsObject() {
+		vals, _ := res.Export()
+		this.Rules[key] = vals.([]interface{})
+	}
+}
+
+func (this *Application) unpackString(key string) {
+	res, _ := this.oo.Get(key)
+	if res.IsUndefined() {
+		this.Rules[key] = ""
+		return
+	}
+	value, _ := res.ToString()
+	if len(value) > 0 && value != "undefined" {
+		this.Rules[key] = value
+	}
+}
+
+func (this *Application) setCallBack(fn string) {
+	if fnVal, _ := this.oo.Get(fn); fnVal.IsDefined() {
+		err := this.Container.Set(fn, fnVal)
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+		}
+	}
+}
+
+func (this *Application) LazyLoad(oo *otto.Object) {
+	var err error
+	this.oo = oo
+
+	this.unpackString(APP_NAME)
+	this.unpackString(COOKIE)
+	this.unpackArray(DOMAIN)
+	this.unpackArray(SCAN_URLS)
+	this.unpackArray(CONTENT_REGEX)
+	this.unpackArray(HELPER_REGEX)
+	this.unpackInt(TIMEOUT)
+	this.unpackInt(USERAGENT)
+	this.unpackArray(ACCEPT_HTTP_STATUS)
+	this.unpackBoolean(AUTOFIND_URLS)
+	this.unpackInt(DELAY)
+	this.unpackInt(MAX_LIMIT)
+
+	//回调方法
+	this.setCallBack(FUNC_INIT_CRAWL)
+	this.setCallBack(FUNC_BEFORE_CRAWL)
+	this.setCallBack(FUNC_ON_DATA_RECEIVED)
+	this.setCallBack(FUNC_AFTER_CRAWL)
+	this.setCallBack(FUNC_BEFORE_EXIT)
+	this.setCallBack(FUNC_BEFORE_DOWNLOAD_PAGE)
+	this.setCallBack(FUNC_ON_CHANGE_PROXY)
+	this.setCallBack(FUNC_IS_ANTI_SPIDER)
+	this.setCallBack(FUNC_AFTER_DOWNLOAD_PAGE)
+	this.setCallBack(FUNC_ON_PROCESS_SCAN_PAGE)
+	this.setCallBack(FUNC_ON_PROCESS_HELPER_PAGE)
+	this.setCallBack(FUNC_ON_PROCESS_CONTENT_PAGE)
+	this.setCallBack(FUNC_AFTER_DOWNLOAD_ATTACHED_PAGE)
+	this.setCallBack(FUNC_AFTER_EXTRACT_FIELD)
+	this.setCallBack(FUNC_BEFORE_HANDLE_IMG)
+	this.setCallBack(FUNC_BEFORE_HOST_FILE)
+	this.setCallBack(FUNC_AFTER_HOST_FILE)
+	this.setCallBack(FUNC_AFTER_EXTRACT_PAGE)
+	this.setCallBack(FUNC_AFTER_EXTRACT_TEMPORARY_FIELD)
+
+	//生成js方法
+	err = this.Container.Set("extracts", this.extractList)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err)
+	}
+	err = this.Container.Set("extract", this.extract)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err)
+	}
+	//解析字段
+	if valField, err := this.Container.Get(FIELDS); err == nil {
+		fields := valField.Object().Keys()
+		if len(fields) > 0 {
+			var items []FieldStash
+			for _, fd := range fields {
+				item, err := valField.Object().Get(fd)
+				if err != nil {
+					spiderhub.Logger.Error("%v", err)
+					continue
+				}
+				var fs FieldStash
+				fieldItem, err := item.Export()
+				if err != nil {
+					spiderhub.Logger.Error("%v", err)
+					continue
+				}
+				field, err := json.Marshal(fieldItem)
+				if err != nil {
+					spiderhub.Logger.Error("%v", err)
+					continue
+				}
+				err = json.Unmarshal(field, &fs)
+				if err != nil {
+					spiderhub.Logger.Error("%v", err)
+					continue
+				}
+				items = append(items, fs)
+			}
+			this.Rules[FIELDS] = items
+		}
+	}
+	this.Start = true
+}
+
+func (this *Application) extractList(call otto.FunctionCall) (result otto.Value) {
+	body := call.Argument(0).String()
+	r := call.Argument(1).String()
+	t, _ := call.Argument(2).ToInteger()
+
+	if t == SELECTORTYPE_JSONPATH {
+		var item interface{}
+		err := json.Unmarshal([]byte(body), &item)
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+			return
+		}
+		res, _ := jsonpath.JsonPathLookup(item, r)
+		result, _ = this.Container.ToValue(res)
+	} else if t == SELECTORTYPE_XPATH {
+		doc, err := htmlquery.Parse(strings.NewReader(body))
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+			return
+		}
+		expr := xpath.MustCompile(r)
+		iter := expr.Evaluate(htmlquery.CreateXPathNavigator(doc)).(*xpath.NodeIterator)
+		var items []interface{}
+		for iter.MoveNext() {
+			if item := iter.Current().Value(); len(item) > 0 {
+				items = append(items, item)
+			}
+		}
+		result, _ = this.Container.ToValue(items)
+	}
+	return
+}
+
+func (this *Application) extract(call otto.FunctionCall) (result otto.Value) {
+	body := call.Argument(0).String()
+	r := call.Argument(1).String()
+	t, _ := call.Argument(2).ToInteger()
+
+	if t == SELECTORTYPE_JSONPATH {
+		var item interface{}
+		err := json.Unmarshal([]byte(body), &item)
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+			return
+		}
+		res, _ := jsonpath.JsonPathLookup(item, r)
+		result, _ = this.Container.ToValue(res)
+	} else if t == SELECTORTYPE_XPATH {
+		doc, err := htmlquery.Parse(strings.NewReader(body))
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+			return
+		}
+		expr := xpath.MustCompile(r)
+		iter := expr.Evaluate(htmlquery.CreateXPathNavigator(doc)).(*xpath.NodeIterator)
+		var item interface{}
+		for iter.MoveNext() {
+			if v := iter.Current().Value(); len(v) > 0 {
+				item = v
+				break
+			}
+		}
+		result, _ = this.Container.ToValue(item)
+	}
+	return
 }
