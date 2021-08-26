@@ -21,7 +21,7 @@ type CrawlerData struct {
 func NewCrawlerData(table string) *CrawlerData {
 	return &CrawlerData{
 		collect: mongo.MongoEngine[mongo.MONGO_DATA].Collection(table),
-		ctx:     context.TODO(),
+		ctx:     context.Background(),
 	}
 }
 
@@ -46,6 +46,17 @@ func (this *CrawlerData) Build(data map[string]interface{}, method int) error {
 		return err
 	}
 	return nil
+}
+
+//删除表中数据
+func (this *CrawlerData) RemoveRows() error {
+	_, err := this.collect.RemoveAll(this.ctx, bson.M{})
+	return err
+}
+
+//删除表
+func (this *CrawlerData) Delete() error {
+	return this.collect.DropCollection(this.ctx)
 }
 
 func dataFormat(data map[string]interface{}) (*primary, interface{}) {

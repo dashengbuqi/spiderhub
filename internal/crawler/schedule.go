@@ -6,10 +6,13 @@ import (
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
+	"github.com/dashengbuqi/spiderhub/internal/crawler/spider"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_main"
 	"github.com/robertkrimen/otto"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 	"time"
 )
 
@@ -74,7 +77,28 @@ func (this *Schedule) Run() {
 		this.outLog <- helper.FmtLog(common.LOG_ERROR, "初始化失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		return
 	}
+	//初始化 js中的console.log
+	console := map[string]interface{}{
+		"log": func(call otto.FunctionCall) otto.Value {
+			res := helper.FmtConsole(call.ArgumentList)
+			this.outLog <- helper.FmtLog(common.LOG_DEBUG, res, common.LOG_LEVEL_DEBUG, common.LOG_TYPE_SYSTEM)
+			return otto.Value{}
+		},
+	}
+	this.mainRule.Container.Set("console", console)
+	go func() {
+		err := this.mainRule.Init(this.inData.Content)
+		if err != nil {
+			this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		}
+	}()
 
+	for {
+		select {
+		case log := <-this.outLog:
+
+		}
+	}
 }
 
 func (this *Schedule) init(call otto.FunctionCall) otto.Value {
@@ -97,6 +121,40 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	}
 	sc := spider_main.NewCrawler()
 	this.bean, _ = sc.GetRowByID(this.inData.AppId)
+	if this.bean.Id == primitive.NilObjectID {
+		this.outLog <- helper.FmtLog(common.LOG_ERROR, "未找到应用数据,请先创建爬虫应用", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		return otto.Value{}
+	}
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer func() {
+			Spool.Stop(token)
+			wg.Done()
+		}()
+		//非调试模式且数据存储方式是重新
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spider_main.METHOD_INSERT {
+			dataTable := fmt.Sprintf("%s%s", common.PREFIX_DATA, this.inData.Token)
+			dataObj := spider_data.NewCrawlerData(dataTable)
+			err := dataObj.RemoveRows()
+			if err != nil {
+				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+			}
+			//清空日志
+			logTable := fmt.Sprintf("%s%s", common.PREFIX_LOG, this.inData.Token)
+			logObj := spider_data.NewCrawlerLog(logTable)
+			err = logObj.RemoveRows()
+			if err != nil {
+				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+			}
+		}
+		//初始化蜘蛛
+		spd := spider.NewSpider(this.inData.AppId, this.inData.Method, this.mainRule.Rules, this.inData.Token, this.mainRule.Container, this.outLog, this.outData)
+		Spool.Start(token, spd)
+	}()
+	wg.Wait()
+	return otto.Value{}
 }
 
 func (this *Schedule) pushLog(body []byte, debug bool) error {

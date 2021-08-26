@@ -2,7 +2,10 @@ package helper
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/dashengbuqi/spiderhub/internal/common"
+	"github.com/robertkrimen/otto"
+	"strings"
 	"time"
 )
 
@@ -17,4 +20,12 @@ func FmtLog(title, content string, level, tp int) []byte {
 	}
 	res, _ := json.Marshal(l)
 	return res
+}
+
+func FmtConsole(argumentList []otto.Value) string {
+	output := []string{}
+	for _, argument := range argumentList {
+		output = append(output, fmt.Sprintf("%v", argument))
+	}
+	return strings.Join(output, " ")
 }
