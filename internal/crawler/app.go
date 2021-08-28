@@ -33,7 +33,7 @@ func RunApp() {
 				continue
 			}
 			if cm.Abort == true {
-
+				Spool.SpiderStop(cm)
 			} else {
 				//如果是调试模式 等待 3s 再启动
 				if cm.Method == common.SCHEDULE_METHOD_DEBUG {

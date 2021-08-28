@@ -150,6 +150,7 @@ func (this *Spider) Stop() {
 
 func (this *Spider) Finish() {
 	this.outLog <- helper.FmtLog(common.LOG_INFO, "爬虫已停止运行", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	//this.bean.ModifyStatus(this.appId,spider_main.CRAWLER_STATUS_NORMAL)
 }
 
 func (this *Spider) initTable() {

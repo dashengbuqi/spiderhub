@@ -95,10 +95,25 @@ func (this *Schedule) Run() {
 
 	for {
 		select {
-		case log := <-this.outLog:
-
+		case m := <-this.outLog:
+			var item common.LogLevel
+			err := json.Unmarshal(m, &item)
+			if err != nil {
+				spiderhub.Logger.Error("%v", err)
+				continue
+			}
+			//已经结速
+			if item.Type == common.LOG_TYPE_FINISH {
+				goto Loop
+			}
+			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
+			this.pushLog(m, debug)
+		case d := <-this.outData:
+			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
+			this.pushData(d, debug)
 		}
 	}
+Loop:
 }
 
 func (this *Schedule) init(call otto.FunctionCall) otto.Value {
