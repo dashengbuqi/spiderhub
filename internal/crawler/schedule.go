@@ -16,6 +16,12 @@ import (
 	"time"
 )
 
+const (
+	//设置前缀
+	PREFIX_LOG  = "crawlerLog"
+	PREFIX_DATA = "crawlerData"
+)
+
 type Schedule struct {
 	inData     *common.Communication       //传输过来的数据
 	outLog     chan []byte                 //日志输出
@@ -28,10 +34,10 @@ type Schedule struct {
 	mainRule   *Application
 }
 
-func NewSchedule(cc *common.Communication) *Schedule {
+func NewSchedule(cc common.Communication) *Schedule {
 	cc.Token = helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Crawler().ToString()
 	return &Schedule{
-		inData:    cc,
+		inData:    &cc,
 		outLog:    make(chan []byte),
 		outData:   make(chan map[string]interface{}),
 		mainRule:  NewApplication(),
@@ -39,7 +45,7 @@ func NewSchedule(cc *common.Communication) *Schedule {
 		logQueue: &queue.Channel{
 			Exchange:     "Crawlers",
 			ExchangeType: "direct",
-			RoutingKey:   common.PREFIX_LOG + cc.Token,
+			RoutingKey:   PREFIX_LOG + cc.Token,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -47,7 +53,7 @@ func NewSchedule(cc *common.Communication) *Schedule {
 		dataQueue: &queue.Channel{
 			Exchange:     "Crawlers",
 			ExchangeType: "direct",
-			RoutingKey:   common.PREFIX_DATA + cc.Token,
+			RoutingKey:   PREFIX_DATA + cc.Token,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -60,7 +66,7 @@ func (this *Schedule) Run() {
 	defer func() {
 		this.container.Call(FUNC_BEFORE_EXIT, nil)
 		sp := spider_main.NewCrawler()
-		err := sp.ModifyStatus(this.inData.AppId, spider_main.CRAWLER_STATUS_NORMAL)
+		err := sp.ModifyStatus(this.inData.AppId, spider_main.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -85,7 +91,10 @@ func (this *Schedule) Run() {
 			return otto.Value{}
 		},
 	}
-	this.mainRule.Container.Set("console", console)
+	err = this.mainRule.Container.Set("console", console)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err.Error())
+	}
 	go func() {
 		err := this.mainRule.Init(this.inData.Content)
 		if err != nil {
@@ -107,10 +116,16 @@ func (this *Schedule) Run() {
 				goto Loop
 			}
 			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
-			this.pushLog(m, debug)
+			err = this.pushLog(m, debug)
+			if err != nil {
+				spiderhub.Logger.Error("%v", err.Error())
+			}
 		case d := <-this.outData:
 			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
-			this.pushData(d, debug)
+			err = this.pushData(d, debug)
+			if err != nil {
+				spiderhub.Logger.Error("%v", err.Error())
+			}
 		}
 	}
 Loop:
@@ -150,14 +165,14 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		}()
 		//非调试模式且数据存储方式是重新
 		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spider_main.METHOD_INSERT {
-			dataTable := fmt.Sprintf("%s%s", common.PREFIX_DATA, this.inData.Token)
+			dataTable := fmt.Sprintf("%s%s", PREFIX_DATA, this.inData.Token)
 			dataObj := spider_data.NewCrawlerData(dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
 				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 			//清空日志
-			logTable := fmt.Sprintf("%s%s", common.PREFIX_LOG, this.inData.Token)
+			logTable := fmt.Sprintf("%s%s", PREFIX_LOG, this.inData.Token)
 			logObj := spider_data.NewCrawlerLog(logTable)
 			err = logObj.RemoveRows()
 			if err != nil {
@@ -188,7 +203,7 @@ func (this *Schedule) pushLog(body []byte, debug bool) error {
 		return err
 	}
 	res["app_id"] = this.inData.AppId.String()
-	table := fmt.Sprintf("%s%s", common.PREFIX_LOG, this.inData.Token)
+	table := fmt.Sprintf("%s%s", PREFIX_LOG, this.inData.Token)
 	obj := spider_data.NewCrawlerLog(table)
 	if _, err := obj.Build(res); err != nil {
 		return err
@@ -225,7 +240,7 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 	data["created_at"] = map[bool]interface{}{
 		false: time.Now().Unix(),
 	}
-	table := fmt.Sprintf("%s%s", common.PREFIX_DATA, this.inData.Token)
+	table := fmt.Sprintf("%s%s", PREFIX_DATA, this.inData.Token)
 	obj := spider_data.NewCrawlerData(table)
 	if err := obj.Build(data, this.bean.Method); err != nil {
 		return err

@@ -3,10 +3,6 @@ package common
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 const (
-	//设置前缀
-	PREFIX_LOG  = "crawlerLog"
-	PREFIX_DATA = "crawlerData"
-
 	EXEC_STATUS_FINISH  = 0
 	EXEC_STATUS_RUNNING = 1
 

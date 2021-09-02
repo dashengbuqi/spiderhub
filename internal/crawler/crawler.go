@@ -193,7 +193,7 @@ type FieldStash struct {
 	//抽取项的别名。一般起中文名，方便查看数据。只影响网页的上显示，可随意修改。
 	Alias string `json:"alias"`
 	//存储容器 string,array,map
-	Container string `json:"container"`
+	Type string `json:"type"`
 	//标识当前抽取项的值是否必须（不能为空）。默认是false，可以为空。
 	Required bool `json:"required"`
 	//需要下载
@@ -289,7 +289,7 @@ type Application struct {
 	Container *otto.Otto
 	RuleName  string
 	oo        *otto.Object
-	Start     bool
+	Running   bool
 }
 
 func NewApplication() *Application {
@@ -317,7 +317,7 @@ func (this *Application) Init(body string) error {
 		spiderhub.Logger.Error("%v", err)
 	}
 	Typ, _ := this.Container.Object(`({String: "string",Array:"array",Map:"map"})`)
-	err = this.Container.Set("Container", Typ)
+	err = this.Container.Set("Type", Typ)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
@@ -457,7 +457,7 @@ func (this *Application) LazyLoad(oo *otto.Object) {
 			this.Rules[FIELDS] = items
 		}
 	}
-	this.Start = true
+	this.Running = true
 }
 
 func (this *Application) extractList(call otto.FunctionCall) (result otto.Value) {

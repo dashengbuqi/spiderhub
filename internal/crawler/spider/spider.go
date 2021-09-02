@@ -35,7 +35,7 @@ type Spider struct {
 	failure    map[string]int
 	httpClient *http.Client
 	token      string
-	bean       *spider_main.CrawlerImpl
+	inst       *spider_main.CrawlerImpl
 }
 
 func NewSpider(appId primitive.ObjectID, method int, rule map[string]interface{}, token string, vm *otto.Otto, lc chan<- []byte, dc chan<- map[string]interface{}) *Spider {
@@ -49,7 +49,7 @@ func NewSpider(appId primitive.ObjectID, method int, rule map[string]interface{}
 		tm:        time.Now().Unix(),
 		params:    rule,
 		failure:   make(map[string]int),
-		bean:      spider_main.NewCrawler(),
+		inst:      spider_main.NewCrawler(),
 	}
 }
 
@@ -60,13 +60,13 @@ func (this *Spider) Run() {
 		if p != nil {
 			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
-		err := this.bean.ModifyStatus(this.appId, spider_main.CRAWLER_STATUS_NORMAL)
+		err := this.inst.ModifyStatus(this.appId, spider_main.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
 		this.outLog <- helper.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
 	}()
-	err := this.bean.ModifyStatus(this.appId, spider_main.CRAWLER_STATUS_RUNNING)
+	err := this.inst.ModifyStatus(this.appId, spider_main.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}

@@ -18,7 +18,7 @@ var (
 	}
 )
 
-func RunApp() {
+func RunServer() {
 	c := make(chan []byte)
 
 	go queue.RabbitConn.Consume(&CrawlerChannel, c)
@@ -40,6 +40,7 @@ func RunApp() {
 					time.Sleep(time.Second * 3)
 				}
 				//运行调度器
+				go NewSchedule(cm).Run()
 			}
 		}
 	}
