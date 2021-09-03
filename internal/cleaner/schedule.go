@@ -1,6 +1,7 @@
 package cleaner
 
 import (
+	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
@@ -9,34 +10,38 @@ import (
 	"github.com/robertkrimen/otto"
 )
 
-const (
-	//设置前缀
-	PREFIX_LOG  = "cleanerLog"
-	PREFIX_DATA = "cleanerData"
-)
-
 type Schedule struct {
-	inData     *common.Communication
-	bean       *spider_main.Crawler
-	outLog     chan []byte
-	outData    chan map[string]interface{}
-	rabbitConn *queue.Base
-	logQueue   *queue.Channel
-	dataQueue  *queue.Channel
-	container  *otto.Otto
-	mainRule   *Application
+	inData       *common.Communication
+	bean         *spider_main.Crawler
+	outLog       chan []byte
+	outData      chan map[string]interface{}
+	rabbitConn   *queue.Base
+	logQueue     *queue.Channel
+	dataQueue    *queue.Channel
+	container    *otto.Otto
+	mainRule     *Application
+	crawlerTable string //爬虫数据表
+	logTable     string //清洗数据日志表
+	dataTable    string //清洗数据表
 }
 
 func NewSchedule(cc common.Communication) *Schedule {
 	cc.Token = helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Clean().ToString()
+	crawlToken := helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Crawler().ToString()
+	crawlTb := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, crawlToken)
+	lt := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_LOG, cc.Token)
+	dt := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, cc.Token)
 	return &Schedule{
-		inData:  &cc,
-		outLog:  make(chan []byte),
-		outData: make(chan map[string]interface{}),
+		inData:       &cc,
+		crawlerTable: crawlTb,
+		logTable:     lt,
+		dataTable:    dt,
+		outLog:       make(chan []byte),
+		outData:      make(chan map[string]interface{}),
 		logQueue: &queue.Channel{
 			Exchange:     "Cleaners",
 			ExchangeType: "direct",
-			RoutingKey:   PREFIX_LOG + cc.Token,
+			RoutingKey:   lt,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -44,7 +49,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 		dataQueue: &queue.Channel{
 			Exchange:     "Cleaners",
 			ExchangeType: "direct",
-			RoutingKey:   PREFIX_DATA + cc.Token,
+			RoutingKey:   dt,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,

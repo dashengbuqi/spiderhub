@@ -49,6 +49,14 @@ const (
 	LOG_TYPE_FINISH
 	LOG_TYPE_HANDLEND
 	LOG_TYPE_HANDLEND_URL
+
+	//设置前缀
+	PREFIX_CRAWL_LOG  = "crawlLog"
+	PREFIX_CRAWL_DATA = "crawlData"
+
+	//设置前缀
+	PREFIX_CLEAN_LOG  = "cleanLog"
+	PREFIX_CLEAN_DATA = "cleanData"
 )
 
 //日志输出

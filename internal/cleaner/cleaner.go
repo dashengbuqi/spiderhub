@@ -6,6 +6,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/internal/crawler"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_main"
 	"github.com/robertkrimen/otto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -23,9 +24,10 @@ type Cleaner struct {
 	abort     bool
 	runTimes  int
 	startBy   int64
+	dataTable string
 }
 
-func NewCleaner(appId primitive.ObjectID, token string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
+func NewCleaner(appId primitive.ObjectID, token string, dataTable string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
 	return &Cleaner{
 		appId:     appId,
 		inst:      spider_main.NewCrawler(),
@@ -35,6 +37,7 @@ func NewCleaner(appId primitive.ObjectID, token string, method int, rule map[str
 		outLog:    log,
 		outData:   data,
 		method:    method,
+		dataTable: dataTable,
 	}
 }
 
@@ -63,6 +66,7 @@ func (this *Cleaner) Run() {
 	var limit int64 = 20
 	var skip int64
 	lost := make(map[string]bool)
+	cd := spider_data.NewCrawlerData(this.dataTable)
 	for {
 		//中断执行
 		if this.abort == true {
