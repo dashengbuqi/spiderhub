@@ -80,3 +80,9 @@ type Communication struct {
 	Token      string             `json:"token"`
 	Content    string             `json:"content"`
 }
+
+type FieldData struct {
+	Alias string      `json:"alias"`
+	Value interface{} `json:"value"`
+	Type  string      `json:"type"`
+}

@@ -56,7 +56,8 @@ func (this *CrawlerData) RemoveRows() error {
 
 func (this *CrawlerData) GetRowsBy(skip int64, limit int64) ([]interface{}, error) {
 	var items []interface{}
-	this.collect.Find().All(&items)
+	err := this.collect.Find(this.ctx, bson.M{}).Skip(skip).Limit(limit).All(&items)
+	return items, err
 }
 
 //删除表

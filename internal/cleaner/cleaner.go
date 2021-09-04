@@ -73,12 +73,49 @@ func (this *Cleaner) Run() {
 			goto Loop
 		}
 		skip = (page - 1) * limit
-
+		//获取爬虫数据
+		list, err := cd.GetRowsBy(skip, limit)
+		if err != nil {
+			this.outLog <- helper.FmtLog(common.LOG_ERROR, "获取分页数据错误:"+err.Error(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+			continue
+		}
+		if list == nil {
+			this.outLog <- helper.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+			goto Loop
+		}
+		for _, item := range list {
+			if this.abort == true {
+				goto Loop
+			}
+			this.process(item.(map[string]interface{}))
+		}
 	}
 Loop:
 	if len(lost) == 0 {
 		lostStr, _ := json.Marshal(lost)
 		this.outLog <- helper.FmtLog(common.LOG_ERROR, string(lostStr), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+	}
+}
+
+//处理数据
+func (this *Cleaner) process(data map[string]interface{}) {
+	row := make(map[string]interface{})
+	row["extract"] = map[string]interface{}{
+		"__id":   data["_id"].(primitive.ObjectID).String(),
+		"__url":  data["targetUrl"],
+		"__time": data["created_at"],
+	}
+	delete(data, "_id")
+	delete(data, "app_id")
+	delete(data, "user_id")
+	delete(data, "created_at")
+	row["data"] = data
+
+	//回调
+	if res, err := this.container.Call(FUNC_ON_EACH_ROW, nil, row); err == nil {
+		if res.IsDefined() == true {
+			result := NewExtract(res, this.rules[FIELDS].([]FieldStash), this.container, this.outLog).Run()
+		}
 	}
 }
 
