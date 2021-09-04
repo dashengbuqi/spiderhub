@@ -34,7 +34,7 @@ func (this *Extract) Run() interface{} {
 	result := make(map[string]interface{})
 	for _, field := range this.fields {
 		value, _ := this.ov.Object().Get(field.Name)
-		result[field.Name] = map[bool]interface{}{
+		result[field.Name] = map[bool]*common.FieldData{
 			field.Primary: this.recursExtract(value, field),
 		}
 	}
@@ -89,6 +89,43 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				}
 			}
 		}
+	} else if fieldType == TYPE_ARRAY {
+		if len(field.Children) > 0 {
+			var subResult []interface{}
+			for _, key := range value.Object().Keys() {
+				subValue, _ := value.Object().Get(key)
+				if subValue.IsObject() {
+					mapVal := make(map[string]interface{})
+					for _, subField := range field.Children {
+						subSubValue, _ := subValue.Object().Get(subField.Name)
+						if subSubValue.IsDefined() {
+							mapVal[subField.Name] = this.recursExtract(subSubValue, subField)
+						}
+					}
+					subResult = append(subResult, mapVal)
+				}
+			}
+			result = &common.FieldData{
+				Alias: field.Alias,
+				Type:  TYPE_ARRAY,
+				Value: subResult,
+			}
+		} else {
+			if value.IsObject() {
+				var subResult []interface{}
+				for _, key := range value.Object().Keys() {
+					val, _ := value.Object().Get(key)
+					if val.IsObject() == false {
+						subResult = append(subResult, val.String())
+					}
+				}
+				result = &common.FieldData{
+					Alias: field.Alias,
+					Type:  TYPE_ARRAY,
+					Value: subResult,
+				}
+			}
+		}
 	}
-
+	return result
 }
