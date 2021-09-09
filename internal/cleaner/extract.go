@@ -24,7 +24,7 @@ func NewExtract(ov otto.Value, fields []FieldStash, vm *otto.Otto, out chan<- []
 	}
 }
 
-func (this *Extract) Run() interface{} {
+func (this *Extract) Run() map[string]interface{} {
 	defer func() {
 		p := recover()
 		if p != nil {

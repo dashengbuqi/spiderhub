@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/robertkrimen/otto"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -28,4 +29,11 @@ func FmtConsole(argumentList []otto.Value) string {
 		output = append(output, fmt.Sprintf("%v", argument))
 	}
 	return strings.Join(output, " ")
+}
+
+func FmtUrl(urlStr string) string {
+	urlStr = strings.Replace(urlStr, "\\", "", -1)
+	urlStr = strings.Replace(urlStr, "\"", "", -1)
+	urlStr, _ = url.QueryUnescape(urlStr)
+	return urlStr
 }

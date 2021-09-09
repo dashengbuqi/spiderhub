@@ -80,7 +80,6 @@ func (this *Cleaner) Run() {
 			continue
 		}
 		if list == nil {
-			this.outLog <- helper.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			goto Loop
 		}
 		for _, item := range list {
@@ -89,12 +88,14 @@ func (this *Cleaner) Run() {
 			}
 			this.process(item.(map[string]interface{}))
 		}
+		page++
 	}
 Loop:
 	if len(lost) == 0 {
 		lostStr, _ := json.Marshal(lost)
 		this.outLog <- helper.FmtLog(common.LOG_ERROR, string(lostStr), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 	}
+	this.outLog <- helper.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 }
 
 //处理数据
@@ -112,11 +113,62 @@ func (this *Cleaner) process(data map[string]interface{}) {
 	row["data"] = data
 
 	//回调
+	var result map[string]interface{}
 	if res, err := this.container.Call(FUNC_ON_EACH_ROW, nil, row); err == nil {
 		if res.IsDefined() == true {
-			result := NewExtract(res, this.rules[FIELDS].([]FieldStash), this.container, this.outLog).Run()
+			result = NewExtract(res, this.rules[FIELDS].([]FieldStash), this.container, this.outLog).Run()
+		} else {
+			result = this.packaging(row["data"].(map[string]interface{}), this.rules[FIELDS].([]FieldStash))
+		}
+	} else {
+		result = this.packaging(row["data"].(map[string]interface{}), this.rules[FIELDS].([]FieldStash))
+	}
+	//下载附件
+	if len(result) > 0 {
+		_, primaryValue := this.searchPrimary(result)
+		if primaryValue == nil {
+			this.outLog <- helper.FmtLog(common.LOG_WARNING, "下载附件需要指定主键", common.LOG_LEVEL_WARN, common.LOG_TYPE_SYSTEM)
+		} else {
+			for _, field := range this.rules[FIELDS].([]FieldStash) {
+				if field.Download {
+					err := NewDownload(result[field.Name].(map[bool]*common.FieldData)[field.Primary], primaryValue, field, this.container).Run()
+					if err != nil {
+						this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+					}
+				}
+			}
 		}
 	}
+	this.outData <- result
+}
+
+//打包数据
+func (this *Cleaner) packaging(data map[string]interface{}, fields []FieldStash) map[string]interface{} {
+	result := make(map[string]interface{})
+	for _, field := range fields {
+		if _, ok := data[field.Name]; ok {
+			result[field.Name] = map[bool]*common.FieldData{
+				field.Primary: {
+					Type:  field.Type,
+					Value: data[field.Name],
+					Alias: field.Alias,
+				}}
+		}
+	}
+	return result
+}
+
+//获取主键对
+func (this *Cleaner) searchPrimary(result map[string]interface{}) (string, interface{}) {
+	for field, item := range result {
+		for isPrimary, data := range item.(map[bool]interface{}) {
+			if isPrimary {
+				val := data.(*common.FieldData).Value
+				return field, val
+			}
+		}
+	}
+	return "", nil
 }
 
 func (this *Cleaner) initTable() {

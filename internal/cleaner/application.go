@@ -17,10 +17,13 @@ const (
 
 	FIELDS = "fields"
 
-	FUNC_ON_EACH_ROW       = "onEachRow"
+	//循环数据
+	FUNC_ON_EACH_ROW = "onEachRow"
+	//下载附件前 整理下载地址
 	FUNC_BEFORE_HANDLE_IMG = "beforeHandleImg"
-	FUNC_BEFORE_HOST_FILE  = "beforeHostFile"
-	FUNC_AFTER_HOST_FILE   = "afterHostFile"
+	//请求的不是附件地址，需要从内容中获取，返回新的附件地址 循环
+	FUNC_BEFORE_HOST_FILE = "beforeHostFile"
+	FUNC_AFTER_HOST_FILE  = "afterHostFile"
 
 	TYPE_STRING = "string"
 	TYPE_ARRAY  = "array"
@@ -72,7 +75,7 @@ type FieldStash struct {
 	// 参数形如a=b&c=d，支持变量替换。与attachedUrl的变量引用方式相同。
 	AttachedUrlParams string `json:"attached_url_params"`
 	// HTTP请求的headers。
-	AttachedHeaders map[string]string `json:"attached_headers"`
+	AttachedHeaders map[string]interface{} `json:"attached_headers"`
 	//附件是否需要下载
 	Download bool `json:"download"`
 	// 抽取项是否是临时的。默认是false。临时的抽取项，数据存储的时候，不会存储其值。

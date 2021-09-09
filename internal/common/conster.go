@@ -23,9 +23,10 @@ const (
 	LOG_LEVEL_WARN
 	LOG_LEVEL_ERROR
 
-	LOG_ERROR = "[错误]"
-	LOG_INFO  = "[信息]"
-	LOG_DEBUG = "[调试]"
+	LOG_ERROR   = "[错误]"
+	LOG_INFO    = "[信息]"
+	LOG_DEBUG   = "[调试]"
+	LOG_WARNING = "[警告]"
 )
 const (
 	//请求方式  0调试  1运行
