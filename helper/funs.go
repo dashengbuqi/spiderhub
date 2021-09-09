@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"github.com/dashengbuqi/spiderhub/internal/common"
@@ -36,4 +38,10 @@ func FmtUrl(urlStr string) string {
 	urlStr = strings.Replace(urlStr, "\"", "", -1)
 	urlStr, _ = url.QueryUnescape(urlStr)
 	return urlStr
+}
+
+func StringToM5(str string) string {
+	h := md5.New()
+	h.Write([]byte(str))
+	return hex.EncodeToString(h.Sum(nil))
 }

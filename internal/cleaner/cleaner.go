@@ -131,7 +131,7 @@ func (this *Cleaner) process(data map[string]interface{}) {
 		} else {
 			for _, field := range this.rules[FIELDS].([]FieldStash) {
 				if field.Download {
-					err := NewDownload(result[field.Name].(map[bool]*common.FieldData)[field.Primary], primaryValue, field, this.container).Run()
+					err := NewDownload(result[field.Name].(map[bool]*common.FieldData)[field.Primary], primaryValue, field, this.token, this.container).Run()
 					if err != nil {
 						this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 					}

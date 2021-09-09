@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 )
@@ -19,14 +20,16 @@ type Download struct {
 	field     FieldStash
 	primary   interface{}
 	container *otto.Otto
+	token     string
 }
 
-func NewDownload(d *common.FieldData, p interface{}, f FieldStash, c *otto.Otto) *Download {
+func NewDownload(d *common.FieldData, p interface{}, f FieldStash, t string, c *otto.Otto) *Download {
 	return &Download{
 		data:      d,
 		field:     f,
 		primary:   p,
 		container: c,
+		token:     t,
 	}
 }
 
@@ -119,6 +122,35 @@ func (this *Download) Run() error {
 func (this *Download) save(uri string, header http.Header, body []byte) error {
 	base, _ := configs.GetParamsByField("Common", "AttachPath")
 	name := helper.GetFileName(uri)
+	fullPath := base.(string) + "/" + this.token + "/" + helper.StringToM5(this.primary.(string))
+	if helper.HasFile(fullPath) == false {
+		if err := helper.MakeDir(fullPath); err != nil {
+			return err
+		}
+	}
+	var cd string
+	cd = header.Get("Content-Disposition")
+	if len(cd) == 0 {
+		cd = header.Get("content-disposition")
+	}
+	if len(cd) > 0 {
+		cdArr := strings.Split(cd, ";")
+		for _, c := range cdArr {
+			if strings.Index(c, "=") > 0 {
+				cArr := strings.Split(c, "=")
+				if strings.ToLower(cArr[0]) == "filename" {
+					name = strings.TrimSpace(strings.Replace(cArr[1], "\"", "", -1))
+				}
+			}
+		}
+	}
+	fp, err := os.Create(fullPath + "/" + name)
+	if err != nil {
+		return err
+	}
+	defer fp.Close()
+	err = helper.CopyFF(strings.NewReader(string(body)), fp)
+	return err
 }
 
 func (this *Download) process(uri string) (int, http.Header, []byte) {
