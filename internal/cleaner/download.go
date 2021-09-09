@@ -81,9 +81,9 @@ func (this *Download) Run() error {
 			var contentType string
 			//请求目标地址
 			deep := 3
-			var i int = 1
+			var i int
 			for {
-				if i > deep {
+				if i++; i > deep {
 					break
 				}
 				status, header, body = this.process(uri)
@@ -105,11 +105,12 @@ func (this *Download) Run() error {
 					//不是文本就退出循环
 					break
 				}
-				i++
+
 			}
 			//最终还是网页内容就直接返回错误
 			if strings.Contains(contentType, "text/html") || strings.Contains(contentType, "text/plain") {
 				err = errors.New("未获取到附件地址")
+				continue
 			}
 			//body保存到对应的目录
 			err = this.save(uri, header, body)
