@@ -28,6 +28,7 @@ const (
 	TYPE_STRING = "string"
 	TYPE_ARRAY  = "array"
 	TYPE_MAP    = "map"
+	TYPE_INT    = "int"
 
 	HTTP_STATUS_SUCCESS               = 200
 	HTTP_STATUS_MOVED_PERMANENTLY     = 301

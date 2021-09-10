@@ -3,32 +3,31 @@ package cleaner
 import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-	"github.com/dashengbuqi/spiderhub/internal/crawler/spider"
 	"sync"
 )
 
 type cleanerPool struct {
-	data map[string]*spider.Spider
+	data map[string]*Cleaner
 }
 
 var (
-	mu    sync.RWMutex
-	Spool = &cleanerPool{
-		data: make(map[string]*spider.Spider),
+	mu        sync.RWMutex
+	CleanPool = &cleanerPool{
+		data: make(map[string]*Cleaner),
 	}
 )
 
-//启动蜘蛛
-func (this *cleanerPool) Start(key string, spd *spider.Spider) {
+//启动
+func (this *cleanerPool) Start(key string, cl *Cleaner) {
 	mu.Lock()
 	defer mu.Unlock()
-	has := this.set(key, spd)
+	has := this.set(key, cl)
 	if has {
 		this.data[key].Run()
 	}
 }
 
-//停止蜘蛛
+//停止
 func (this *cleanerPool) Stop(key string) {
 	has := this.Exist(key)
 	if has {
@@ -44,10 +43,10 @@ func (this *cleanerPool) Exist(key string) bool {
 	_, ok := this.data[key]
 	return ok
 }
-func (this *cleanerPool) set(key string, spd *spider.Spider) bool {
+func (this *cleanerPool) set(key string, cl *Cleaner) bool {
 	mu.Lock()
 	defer mu.Unlock()
-	this.data[key] = spd
+	this.data[key] = cl
 	_, ok := this.data[key]
 	return ok
 }
@@ -59,13 +58,13 @@ func (this *cleanerPool) delete(key string) {
 	}
 }
 
-func (this *cleanerPool) Get(key string) *spider.Spider {
+func (this *cleanerPool) Get(key string) *Cleaner {
 	mu.RLock()
 	defer mu.RUnlock()
 	return this.data[key]
 }
 
-func (this *cleanerPool) SpiderStop(cm common.Communication) {
-	key := helper.NewToken(cm.UserId, cm.AppId, cm.DebugId).Crawler().ToString()
+func (this *cleanerPool) CleanStop(cm common.Communication) {
+	key := helper.NewToken(cm.UserId, cm.AppId, cm.DebugId).Pool().ToString()
 	this.Stop(key)
 }

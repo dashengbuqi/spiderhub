@@ -66,6 +66,6 @@ func (this *crawlerPool) Get(key string) *spider.Spider {
 }
 
 func (this *crawlerPool) SpiderStop(cm common.Communication) {
-	key := helper.NewToken(cm.UserId, cm.AppId, cm.DebugId).Crawler().ToString()
+	key := helper.NewToken(cm.UserId, cm.AppId, cm.DebugId).Pool().ToString()
 	this.Stop(key)
 }

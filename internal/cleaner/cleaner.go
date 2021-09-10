@@ -98,6 +98,10 @@ Loop:
 	this.outLog <- helper.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 }
 
+func (this *Cleaner) Stop() {
+	this.abort = true
+}
+
 //处理数据
 func (this *Cleaner) process(data map[string]interface{}) {
 	row := make(map[string]interface{})
