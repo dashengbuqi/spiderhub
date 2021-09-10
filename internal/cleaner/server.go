@@ -31,7 +31,9 @@ func RunServer() {
 				continue
 			}
 			if cm.Abort {
-
+				go CleanPool.CleanStop(cm)
+			} else {
+				go NewSchedule(cm).Run()
 			}
 		}
 	}
