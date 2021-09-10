@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"errors"
+	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/configs"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
@@ -34,6 +35,12 @@ func NewDownload(d *common.FieldData, p interface{}, f FieldStash, t string, c *
 }
 
 func (this *Download) Run() error {
+	defer func() {
+		p := recover()
+		if p != nil {
+			spiderhub.Logger.Error("下载失败:%v", p.(error).Error())
+		}
+	}()
 	var list []string
 	if this.data.Type == TYPE_STRING {
 		if len(this.data.Value.(string)) > 0 && this.data.Value.(string) != "undefined" {

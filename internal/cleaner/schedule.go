@@ -130,7 +130,8 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
-
+	sc := spider_main.NewCrawler()
+	this.bean, _ = sc.GetRowByID(this.inData.AppId)
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -139,7 +140,11 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			CleanPool.Stop(key)
 			wg.Done()
 		}()
-
+		sp := spider_main.NewCrawler()
+		err := sp.ModifyStatus(this.inData.AppId, spider_main.STATUS_RUNNING)
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+		}
 		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spider_main.METHOD_INSERT {
 			dataObj := spider_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()

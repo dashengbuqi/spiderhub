@@ -51,7 +51,7 @@ func (this *Cleaner) Run() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		this.outLog <- helper.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
+		this.outLog <- nil
 	}()
 	err := this.inst.ModifyStatus(this.appId, spider_main.STATUS_RUNNING)
 	if err != nil {

@@ -105,14 +105,8 @@ func (this *Schedule) Run() {
 	for {
 		select {
 		case m := <-this.outLog:
-			var item common.LogLevel
-			err := json.Unmarshal(m, &item)
-			if err != nil {
-				spiderhub.Logger.Error("%v", err)
-				continue
-			}
-			//已经结速
-			if item.Type == common.LOG_TYPE_FINISH {
+			//已经结结束
+			if m == nil {
 				goto Loop
 			}
 			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
@@ -147,6 +141,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	token := helper.NewToken(this.inData.UserId, this.inData.AppId, this.inData.DebugId).Pool().ToString()
 	if Spool.Exist(token) {
 		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+		this.outLog <- nil
 		return otto.Value{}
 	}
 	sc := spider_main.NewCrawler()
