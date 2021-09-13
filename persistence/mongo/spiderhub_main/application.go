@@ -1,4 +1,4 @@
-package spider_main
+package spiderhub_main
 
 import (
 	"context"
@@ -17,7 +17,7 @@ const (
 	METHOD_APPEND = 3
 )
 
-type Crawler struct {
+type Application struct {
 	Id           primitive.ObjectID `bson:"_id"`
 	Title        string             `bson:"title"`
 	UserId       int                `bson:"user_id"`
@@ -34,25 +34,25 @@ type Crawler struct {
 	CreatedAt    int64              `bson:"created_at"`
 }
 
-type CrawlerImpl struct {
+type ApplicationImpl struct {
 	collect *qmgo.Collection
 	ctx     context.Context
 }
 
-func NewCrawler() *CrawlerImpl {
-	return &CrawlerImpl{
-		collect: mongo.MongoEngine[mongo.MONGO_MAIN].Collection("crawler"),
+func NewApplication() *ApplicationImpl {
+	return &ApplicationImpl{
+		collect: mongo.MongoEngine[mongo.MONGO_MAIN].Collection("application"),
 		ctx:     context.Background(),
 	}
 }
 
 //更新爬虫状态
-func (this *CrawlerImpl) ModifyStatus(id primitive.ObjectID, state int) error {
+func (this *ApplicationImpl) ModifyStatus(id primitive.ObjectID, state int) error {
 	return this.collect.UpdateOne(this.ctx, bson.M{"_id": id}, bson.M{"$set": bson.M{"status": state}})
 }
 
-func (this *CrawlerImpl) GetRowByID(id primitive.ObjectID) (*Crawler, error) {
-	var item Crawler
+func (this *ApplicationImpl) GetRowByID(id primitive.ObjectID) (*Application, error) {
+	var item Application
 	err := this.collect.Find(this.ctx, bson.M{"_id": id}).One(&item)
 	if err != nil {
 		return &item, err

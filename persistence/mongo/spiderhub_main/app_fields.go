@@ -1,4 +1,4 @@
-package spider_main
+package spiderhub_main
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type TableHead struct {
+type AppFields struct {
 	Id        primitive.ObjectID `bson:"_id"`
 	Target    int                `bson:"target"`
 	TargetId  primitive.ObjectID `bson:"target_id"`
@@ -18,21 +18,21 @@ type TableHead struct {
 	CreatedAt int64              `bson:"created_at"`
 }
 
-type TableHeadImpl struct {
+type AppFieldsImpl struct {
 	Collect *qmgo.Collection
 	Ctx     context.Context
 }
 
-func NewTableHead() *TableHeadImpl {
-	return &TableHeadImpl{
-		Collect: mongo.MongoEngine[mongo.MONGO_MAIN].Collection("table_head"),
+func NewAppField() *AppFieldsImpl {
+	return &AppFieldsImpl{
+		Collect: mongo.MongoEngine[mongo.MONGO_MAIN].Collection("fields"),
 		Ctx:     context.Background(),
 	}
 }
 
 //更新数据
-func (this *TableHeadImpl) Modify(target int, appid primitive.ObjectID, content []byte) error {
-	var item TableHead
+func (this *AppFieldsImpl) Modify(target int, appid primitive.ObjectID, content []byte) error {
+	var item AppFields
 
 	err := this.Collect.Find(this.Ctx, bson.M{"target": target, "target_id": appid}).One(&item)
 	if err != nil {

@@ -1,4 +1,4 @@
-package spider_data
+package spiderhub_data
 
 import (
 	"context"

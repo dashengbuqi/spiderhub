@@ -6,8 +6,8 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/internal/crawler"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_data"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
 	"github.com/robertkrimen/otto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -15,7 +15,7 @@ import (
 type Cleaner struct {
 	appId     primitive.ObjectID
 	rules     map[string]interface{}
-	inst      *spider_main.CrawlerImpl
+	inst      *spiderhub_main.ApplicationImpl
 	method    int
 	token     string
 	container *otto.Otto
@@ -30,7 +30,7 @@ type Cleaner struct {
 func NewCleaner(appId primitive.ObjectID, token string, dataTable string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
 	return &Cleaner{
 		appId:     appId,
-		inst:      spider_main.NewCrawler(),
+		inst:      spiderhub_main.NewApplication(),
 		token:     token,
 		rules:     rule,
 		container: vm,
@@ -47,13 +47,13 @@ func (this *Cleaner) Run() {
 		if p != nil {
 			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
-		err := this.inst.ModifyStatus(this.appId, spider_main.STATUS_NORMAL)
+		err := this.inst.ModifyStatus(this.appId, spiderhub_main.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
 		this.outLog <- nil
 	}()
-	err := this.inst.ModifyStatus(this.appId, spider_main.STATUS_RUNNING)
+	err := this.inst.ModifyStatus(this.appId, spiderhub_main.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
@@ -66,7 +66,7 @@ func (this *Cleaner) Run() {
 	var limit int64 = 20
 	var skip int64
 	lost := make(map[string]bool)
-	cd := spider_data.NewCrawlerData(this.dataTable)
+	cd := spiderhub_data.NewCrawlerData(this.dataTable)
 	for {
 		//中断执行
 		if this.abort == true {
@@ -194,7 +194,7 @@ func (this *Cleaner) initTable() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		th := spider_main.NewTableHead()
+		th := spiderhub_main.NewAppField()
 		err = th.Modify(common.TARGET_TYPE_CLEAN, this.appId, itemStr)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)

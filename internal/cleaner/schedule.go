@@ -16,7 +16,7 @@ import (
 
 type Schedule struct {
 	inData       *common.Communication
-	bean         *spider_main.Crawler
+	bean         *spiderhub.Crawler
 	outLog       chan []byte
 	outData      chan map[string]interface{}
 	rabbitConn   *queue.Base
@@ -66,8 +66,8 @@ func NewSchedule(cc common.Communication) *Schedule {
 
 func (this *Schedule) Run() {
 	defer func() {
-		sp := spider_main.NewCrawler()
-		err := sp.ModifyStatus(this.inData.AppId, spider_main.STATUS_NORMAL)
+		sp := spiderhub.NewCrawler()
+		err := sp.ModifyStatus(this.inData.AppId, spiderhub.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -130,7 +130,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
-	sc := spider_main.NewCrawler()
+	sc := spiderhub.NewCrawler()
 	this.bean, _ = sc.GetRowByID(this.inData.AppId)
 	var wg sync.WaitGroup
 
@@ -140,19 +140,19 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			CleanPool.Stop(key)
 			wg.Done()
 		}()
-		sp := spider_main.NewCrawler()
-		err := sp.ModifyStatus(this.inData.AppId, spider_main.STATUS_RUNNING)
+		sp := spiderhub.NewCrawler()
+		err := sp.ModifyStatus(this.inData.AppId, spiderhub.STATUS_RUNNING)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spider_main.METHOD_INSERT {
-			dataObj := spider_data.NewCrawlerData(this.dataTable)
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spiderhub.METHOD_INSERT {
+			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
 				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 			//清空日志
-			logObj := spider_data.NewCrawlerLog(this.logTable)
+			logObj := spiderhub_data.NewCrawlerLog(this.logTable)
 			err = logObj.RemoveRows()
 			if err != nil {
 				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
@@ -178,7 +178,7 @@ func (this *Schedule) pushLogger(data []byte, debug bool) error {
 		return err
 	}
 	res["app_id"] = this.inData.AppId.String()
-	obj := spider_data.NewCrawlerLog(this.logTable)
+	obj := spiderhub_data.NewCrawlerLog(this.logTable)
 	if _, err := obj.Build(res); err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 			Value: time.Now().Unix(),
 		},
 	}
-	obj := spider_data.NewCrawlerData(this.dataTable)
+	obj := spiderhub_data.NewCrawlerData(this.dataTable)
 	if err := obj.Build(data, this.bean.Method); err != nil {
 		return err
 	}

@@ -1,9 +1,10 @@
-package spider_data
+package spiderhub_data
 
 import (
 	"context"
 	"github.com/dashengbuqi/spiderhub/middleware/mongo"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -30,7 +31,7 @@ func (this *CrawlerData) Build(data map[string]interface{}, method int) error {
 	//格式化数据
 	pm, ndata := dataFormat(data)
 	//需要更新则检查是否存在
-	if method == spider_main.METHOD_UPDATE && len(pm.field) > 0 {
+	if method == spiderhub_main.METHOD_UPDATE && len(pm.field) > 0 {
 		cond := bson.M{pm.field: pm.value}
 		amount, _ := this.collect.Find(this.ctx, cond).Count()
 		if amount > 0 {
