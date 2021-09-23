@@ -85,7 +85,7 @@ type FieldStash struct {
 	Func string `json:"func"`
 }
 
-type Application struct {
+type RuleConfig struct {
 	Rules     map[string]interface{}
 	Container *otto.Otto
 	RuleName  string
@@ -93,14 +93,14 @@ type Application struct {
 	Running   bool
 }
 
-func NewApplication() *Application {
-	return &Application{
+func NewRuleConfig() *RuleConfig {
+	return &RuleConfig{
 		Rules:     make(map[string]interface{}),
 		Container: otto.New(),
 	}
 }
 
-func (this *Application) Init(body string) error {
+func (this *RuleConfig) Init(body string) error {
 	st, _ := this.Container.Object(`({XPath:0,JsonPath:1,Regex:2})`)
 	this.Container.Set("SelectType", st)
 	ua, _ := this.Container.Object(`({Computer:0,Android:1,IOS:2,Mobile:3,Empty:4})`)
@@ -113,7 +113,7 @@ func (this *Application) Init(body string) error {
 	return err
 }
 
-func (this *Application) LazyLoad(oo *otto.Object) {
+func (this *RuleConfig) LazyLoad(oo *otto.Object) {
 	this.oo = oo
 
 	this.setCallBack(FUNC_ON_EACH_ROW)
@@ -169,7 +169,7 @@ func (this *Application) LazyLoad(oo *otto.Object) {
 	this.Running = true
 }
 
-func (this *Application) setCallBack(fn string) {
+func (this *RuleConfig) setCallBack(fn string) {
 	if fnVal, _ := this.oo.Get(fn); fnVal.IsDefined() {
 		err := this.Container.Set(fn, fnVal)
 		if err != nil {
@@ -178,7 +178,7 @@ func (this *Application) setCallBack(fn string) {
 	}
 }
 
-func (this *Application) extractList(call otto.FunctionCall) (result otto.Value) {
+func (this *RuleConfig) extractList(call otto.FunctionCall) (result otto.Value) {
 	body := call.Argument(0).String()
 	r := call.Argument(1).String()
 	t, _ := call.Argument(2).ToInteger()
@@ -211,7 +211,7 @@ func (this *Application) extractList(call otto.FunctionCall) (result otto.Value)
 	return
 }
 
-func (this *Application) extract(call otto.FunctionCall) (result otto.Value) {
+func (this *RuleConfig) extract(call otto.FunctionCall) (result otto.Value) {
 	body := call.Argument(0).String()
 	r := call.Argument(1).String()
 	t, _ := call.Argument(2).ToInteger()
@@ -245,7 +245,7 @@ func (this *Application) extract(call otto.FunctionCall) (result otto.Value) {
 	return
 }
 
-func (this *Application) extractCount(call otto.FunctionCall) (result otto.Value) {
+func (this *RuleConfig) extractCount(call otto.FunctionCall) (result otto.Value) {
 	content := call.Argument(0).String()
 	xRule := call.Argument(1).String()
 	typ, _ := call.Argument(2).ToInteger()

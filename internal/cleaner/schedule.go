@@ -7,8 +7,8 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_data"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
 	"github.com/robertkrimen/otto"
 	"sync"
 	"time"
@@ -16,14 +16,14 @@ import (
 
 type Schedule struct {
 	inData       *common.Communication
-	bean         *spiderhub.Crawler
+	bean         *spiderhub_main.Application
 	outLog       chan []byte
 	outData      chan map[string]interface{}
 	rabbitConn   *queue.Base
 	logQueue     *queue.Channel
 	dataQueue    *queue.Channel
 	container    *otto.Otto
-	mainRule     *Application
+	mainRule     *RuleConfig
 	crawlerTable string //爬虫数据表
 	logTable     string //清洗数据日志表
 	dataTable    string //清洗数据表
@@ -58,7 +58,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 			Durable:      false,
 			AutoDelete:   true,
 		},
-		mainRule:   NewApplication(),
+		mainRule:   NewRuleConfig(),
 		container:  otto.New(),
 		rabbitConn: queue.RabbitConn,
 	}
@@ -66,8 +66,8 @@ func NewSchedule(cc common.Communication) *Schedule {
 
 func (this *Schedule) Run() {
 	defer func() {
-		sp := spiderhub.NewCrawler()
-		err := sp.ModifyStatus(this.inData.AppId, spiderhub.STATUS_NORMAL)
+		sp := spiderhub_main.NewApplication()
+		err := sp.ModifyStatus(this.inData.AppId, spiderhub_main.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -130,8 +130,8 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
-	sc := spiderhub.NewCrawler()
-	this.bean, _ = sc.GetRowByID(this.inData.AppId)
+	sp := spiderhub_main.NewApplication()
+	this.bean, _ = sp.GetRowByID(this.inData.AppId)
 	var wg sync.WaitGroup
 
 	wg.Add(1)
@@ -140,12 +140,11 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			CleanPool.Stop(key)
 			wg.Done()
 		}()
-		sp := spiderhub.NewCrawler()
-		err := sp.ModifyStatus(this.inData.AppId, spiderhub.STATUS_RUNNING)
+		err := sp.ModifyStatus(this.inData.AppId, spiderhub_main.STATUS_RUNNING)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spiderhub.METHOD_INSERT {
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spiderhub_main.METHOD_INSERT {
 			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {

@@ -3,8 +3,7 @@ package spiderhub_data
 import (
 	"context"
 	"github.com/dashengbuqi/spiderhub/middleware/mongo"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spider_main"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 )
