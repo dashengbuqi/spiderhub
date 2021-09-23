@@ -75,3 +75,16 @@ Mongo:
     Dbs:
       - spider_main
       - spider_data
+Backend:
+  Dev:
+    Addr: :8080
+    Level: debug
+    Reload: true
+  Test:
+    Addr: :8080
+    Level: info
+    Reload: true
+  Prod:
+    Addr: :8080
+    Level: error
+    Reload: false
