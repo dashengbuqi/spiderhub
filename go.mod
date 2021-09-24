@@ -22,7 +22,6 @@ require (
 	github.com/iris-contrib/schema v0.0.6 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/kataras/golog v0.1.7 // indirect
-	github.com/kataras/iris v0.0.2
 	github.com/kataras/iris/v12 v12.1.8 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect

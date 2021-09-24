@@ -3,11 +3,15 @@ package backend
 import (
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/configs"
-	"github.com/kataras/iris"
-	"github.com/kataras/iris/mvc"
+	"github.com/dashengbuqi/spiderhub/internal/backend/web/controllers"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
+	"path"
+	"runtime"
 )
 
 func Run() {
+	base := getCurrentPath()
 	param, err := configs.GetParams("Backend")
 	if err != nil {
 		panic(err)
@@ -16,11 +20,12 @@ func Run() {
 	app := iris.New()
 	//输入IRIS日志
 	app.Logger().SetLevel(params["Level"].(string))
-	app.Favicon("./assets/favicon.ico")
-	app.RegisterView(iris.HTML("./web/views", ".html").Layout("layout/main.html").Reload(params["Reload"].(bool)))
-	app.HandleDir("/static", iris.Dir("./assets"))
+	app.Favicon(base + "/assets/favicon.ico")
+	app.RegisterView(iris.HTML(base+"/web/views", ".html").Layout("layout/main.html").Reload(params["Reload"].(bool)))
+	app.HandleDir("/static", base+"/assets")
 	//默认
 	mvc.Configure(app.Party("/"), index)
+	mvc.Configure(app.Party("/default"), index)
 	//登录
 	mvc.Configure(app.Party("/login"), login)
 
@@ -40,11 +45,19 @@ func Run() {
 		spiderhub.Logger.Error("%v", err)
 	}
 }
-
 func index(app *mvc.Application) {
-
+	app.Handle(new(controllers.DefaultController))
 }
 
 func login(app *mvc.Application) {
 
+}
+
+func getCurrentPath() string {
+	var abPath string
+	_, filename, _, ok := runtime.Caller(0)
+	if ok {
+		abPath = path.Dir(filename)
+	}
+	return abPath
 }
