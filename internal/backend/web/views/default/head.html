@@ -1,0 +1,148 @@
+<style type="text/css">
+    #mn1 a {
+        line-height: 25px;
+    }
+    #mn1 a span.r4 {
+        background: rgba(0, 0, 0, 0) url("./images/password.png") no-repeat scroll center center;
+        display: inline-block;
+        height: 18px;
+        margin: 0 10px;
+        vertical-align: middle;
+        width: 18px;}
+
+    #mn1 a span.r5 {
+        background: rgba(0, 0, 0, 0) url("./images/exit.png") no-repeat scroll center center;
+        display: inline-block;
+        height: 18px;
+        margin: 0 10px;
+        vertical-align: middle;
+        width: 18px;}
+</style>
+<div class="tp_1 fl">
+    <h1 class="logo"></h1>
+</div><!--tp_1-->
+<div class="j_menu cf">
+    <ul id="headMenu"></ul>
+</div><!--menu-->
+<div class="su_p">
+    <a href="javascript:void(0)">
+        <span class="r1" id="currentRoleIcon"></span>
+        <span data-options="menu:'#mn1'" class="easyui-menubutton role-menu m-btn l-btn l-btn-plain m-btn-plain-active" id="roles" style="background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none;" group="">
+            <span class="l-btn-text">
+                <p id="loginusername">大圣不齐 【 超级管理员 】 </p>
+            </span>
+        </span>
+    </a>
+</div><!--su_p-->
+<div class="su_p2 menu-content menu-top menu" id="mn1" style="display: none; left: 1353px; height: auto; overflow: hidden; width: 118px; top: 43.75px; z-index: 110005;">
+    <a href="javascript:void(0)" onclick="modifyPassword()"><span class="r4"></span><span>帐户设置</span></a>
+    <a href="/logout"> <span class="r5"></span><span>退出</span></a>
+</div>
+<script>
+    //左边初始化显示做菜单栏面板
+    var flag = false;
+    //var arr_not_operation = <?= json_encode(array_keys($not_operation))?>;
+    //var not_operation = <?= json_encode($not_operation)?>;
+    var panelTitle = '';
+    var tableleftboxId = '';
+    $(function(){
+        //初始化左菜单栏
+        menuInit();
+        /**
+         * 选中一级菜单
+         * 默认选中第一个 stop
+         */
+        $(".topMenuTempClass").first().find("a").first().addClass("j_menu_top_active");
+        /*
+         * 选中二级菜单
+         * 默认选中第一个
+         */
+        $('#west').panel({title:panelTitle});
+        $("#"+tableleftboxId).slideToggle(300);
+    });
+
+    function menuInit() {
+        //请求菜单接口获取数据
+        var allMenu = JSON.parse({{.menus}});
+        console.log(allMenu);
+        var leftHtml = "";
+        for (var i in allMenu) {
+            //构建header目录
+            var headArea = allMenu[i];
+            //左侧区域
+            var leftArea = headArea;
+            //生成顶部菜单
+            var headHtml = "";
+
+            headHtml += '<li id="topMenu'+headArea.id+'" menuname="'+headArea.task_name+'" class="topMenuTempClass">' +
+                '<a href="javascript:void(0)" onclick="$(\'#west\').panel({title:\''+headArea.task_name+'\'});selectMenu(\''+headArea.id+'\')">' +
+                '  <span class="'+headArea.icon+'"></span>' +
+                '    <p>'+headArea.task_name+'</p>' +
+                '</a>' +
+                '</li>';
+            //生成head html
+            $("#headMenu").append(headHtml);
+            var parentId = leftArea.id;
+            var secondMenuArr = leftArea['children'];
+            if(!flag){
+                flag = true;
+                panelTitle = leftArea.task_name;
+                tableleftboxId = parentId;
+            }
+            leftHtml += '<div class="tableleftbox" style="display:none" id="' + parentId + '">' +
+                ' <div class="menuLine" >' +
+                secondMenu(parentId, secondMenuArr) +
+                ' </div>' +
+                '</div>';
+
+        }
+        //插入菜单
+        $("#leftMenu").html(leftHtml);
+        //构建左侧菜单
+    }
+
+    function secondMenu(parentId, secondMenuArr) {
+        var menuLineHtml = '';
+        for(var j in secondMenuArr){
+            var subMenu = secondMenuArr[j];
+            var thirdMenuArr = subMenu.children;
+            var subMenuId = subMenu.id;
+            var upId = '' + parentId + subMenuId;
+            if(subMenu['icon']){
+                icon = subMenu['icon'];
+            }else{
+                icon = 'i1';
+            }
+            menuLineHtml += '<div parentid="' + parentId + '" id="up' + upId + '" onclick="colseOrOpenMenu(\'' + upId + '\')" class="left_up3">'+
+                '<h3>'+
+                '<span class="sicon '+ icon +'"></span>'+ subMenu['task_name'] +
+                '</h3>'+
+                '<span class="arr"></span>'+
+                '</div>'+
+                '<div class="left_end" id="end'+ upId +'">'+
+                '<ul>'+
+                thirdMenu(upId, thirdMenuArr) +
+                '</ul>'+
+                '</div>';
+        }
+
+        //返回第二级菜单
+        return menuLineHtml;
+    }
+
+    //三级菜单
+    function thirdMenu(upId, thirdMenuArr){
+        var leftEndUlHtml = '';
+        for(var k in thirdMenuArr){
+            var subMenu = thirdMenuArr[k];
+            var subMenuId = subMenu['id'];
+            var leftMenuId = '' + upId + subMenuId;
+            var routeUrl = subMenu['task_url'];
+            leftEndUlHtml += '<li parentid="' + upId + '" class="leftMenuTempClass" id="leftMenu'+ leftMenuId +'">'+
+                '<a href="javascript:void(0)" onclick="addTab(\''+ subMenu['task_name'] +'\',\''+ routeUrl +'\', \'\',undefined,'+ leftMenuId +');return false;">'+ subMenu['task_name'] +'</a>'+
+                '</li>';
+        }
+        //返回第三级菜单
+        return leftEndUlHtml;
+    }
+</script>
