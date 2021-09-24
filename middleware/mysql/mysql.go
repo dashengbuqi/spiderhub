@@ -9,10 +9,7 @@ import (
 var Engine map[string]*xorm.Engine
 
 const (
-	APPLETS = "sensor_applets"
-	CHANPIN = "sensor_chanpin"
-	MAIN    = "sensor_main"
-	PRODUCT = "sensor_product"
+	DATABASE_SPIDERHUB = "spiderhub"
 )
 
 func init() {

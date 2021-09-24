@@ -4,6 +4,7 @@ import (
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/configs"
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/controllers"
+	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"path"
@@ -25,7 +26,10 @@ func Run() {
 	app.HandleDir("/static", base+"/assets")
 	//默认
 	mvc.Configure(app.Party("/"), index)
+	//框架
 	mvc.Configure(app.Party("/default"), index)
+	//菜单
+	//mvc.Configure(app.Party("/menu"),memu)
 	//登录
 	mvc.Configure(app.Party("/login"), login)
 
@@ -46,7 +50,13 @@ func Run() {
 	}
 }
 func index(app *mvc.Application) {
+	menuService := services.NewMenuService()
+	app.Register(menuService)
 	app.Handle(new(controllers.DefaultController))
+}
+
+func menu(app *mvc.Application) {
+
 }
 
 func login(app *mvc.Application) {

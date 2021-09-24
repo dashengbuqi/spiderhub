@@ -75,6 +75,25 @@ Mongo:
     Dbs:
       - spider_main
       - spider_data
+Mysql:
+  Dev:
+    Host: 192.168.1.40:3306
+    User: root
+    Password: "123456"
+    Dbs:
+      - spiderhub
+  Test:
+    Host: 192.168.1.40:3306
+    User: root
+    Password: "asd123"
+    Dbs:
+      - spiderhub
+  Prod:
+    Host: 192.168.1.40:3306
+    User: "swiopr"
+    Password: "Sirui2019"
+    Dbs:
+      - spiderhub
 Backend:
   Dev:
     Addr: :8080
