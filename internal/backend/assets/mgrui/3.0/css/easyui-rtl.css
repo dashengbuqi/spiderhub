@@ -1,0 +1,41 @@
+
+
+.datagrid-view1{
+	left:auto;
+	right:0;
+}
+.datagrid-view2{
+	left:0;
+	right:auto;
+}
+/**
+.datagrid-header-inner{
+	float:right;
+}
+**/
+.datagrid-header-inner{
+	float:left;
+}
+.datagrid-footer-inner{
+	float:right;
+}
+.datagrid-sort-desc .datagrid-sort-icon,.datagrid-sort-asc .datagrid-sort-icon{
+	padding:0 0 0 13px;
+}
+.datagrid-header td{
+	border-left:1px dotted #ccc;
+	border-right:0;
+}
+.datagrid-body td,.datagrid-footer td{
+	border-left:1px dotted #ccc;
+	border-right:0;
+}
+.datagrid-mask-msg{
+	padding:12px 30px 10px 5px;
+	background-position:96% center;
+}
+.propertygrid .datagrid-view1 .datagrid-body td{
+	border-width:0 0 0 1px;
+}
+
+.datagrid-view2>.datagrid-header>.datagrid-header-inner{width:auto;}

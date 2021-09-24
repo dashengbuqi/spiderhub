@@ -1,0 +1,48 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 2016-4-12, 16:34:39
+    Author     : SunHaohan
+*/
+.searArea ul li .s_c .combo{height:28px !important;border:1px solid #cfdadc !important;}
+
+.searArea ul li .s_c label {
+	height: 34px;
+	line-height: 34px;
+	vertical-align: middle;
+	display: inline-block;
+	width:100px; 
+	/* width:38%; */
+	text-align: right;
+	color: #59666e;
+}
+
+.searArea ul li .s_c {
+	margin-right:10px;
+	width:260px;
+}
+
+.searArea ul{
+	position: relative;
+} 
+.searArea ul .formLi{
+	display: inline-block;
+	width: 90%;
+    display: flex;
+    flex-wrap: wrap
+}
+
+.searArea ul .searchLi{
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	right: 45px;
+}
+
+/***弹出窗表单***/
+#form label{
+	text-align:left; padding-left:10px
+}
