@@ -6,7 +6,8 @@ import (
 )
 
 type MenuService interface {
-	GetLevelList(parant_id int64) string
+	GetLevelMenu(parant_id int64) string
+	PostMenuList(post map[string]interface{}) string
 }
 
 type menuService struct {
@@ -20,8 +21,13 @@ func NewMenuService() MenuService {
 }
 
 //获取规范的菜单层级
-func (this *menuService) GetLevelList(parent_id int64) string {
+func (this *menuService) GetLevelMenu(parent_id int64) string {
 	data := this.repo.GetRowsData(parent_id)
 	jStr, _ := json.Marshal(data)
 	return string(jStr)
+}
+
+func (this *menuService) PostMenuList(post map[string]interface{}) string {
+	result := this.repo.PostMenuList(post)
+	return result
 }

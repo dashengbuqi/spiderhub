@@ -29,7 +29,7 @@ func Run() {
 	//框架
 	mvc.Configure(app.Party("/default"), index)
 	//菜单
-	//mvc.Configure(app.Party("/menu"),memu)
+	mvc.Configure(app.Party("/menu"), menu)
 	//登录
 	mvc.Configure(app.Party("/login"), login)
 
@@ -56,7 +56,9 @@ func index(app *mvc.Application) {
 }
 
 func menu(app *mvc.Application) {
-
+	menuService := services.NewMenuService()
+	app.Register(menuService)
+	app.Handle(new(controllers.MenuController))
 }
 
 func login(app *mvc.Application) {

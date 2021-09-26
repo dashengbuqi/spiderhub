@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"encoding/json"
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
-	"github.com/dashengbuqi/spiderhub/persistence/mysql/system"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 )
@@ -22,10 +20,13 @@ func (this *DefaultController) Get() mvc.Result {
 }
 
 func (this *DefaultController) GetHeader() {
-	this.Ctx.ViewData("menus", string(jStr))
+	menus := this.Service.GetLevelMenu(0)
+	this.Ctx.ViewData("menus", menus)
 	this.Ctx.View("default/head.html")
 }
 
-func (this *DefaultController) GetMain() {
-	this.Ctx.View("default/main.html")
+func (this *DefaultController) GetMain() mvc.Result {
+	return &mvc.View{
+		Name: "default/main.html",
+	}
 }

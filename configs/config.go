@@ -2,13 +2,16 @@ package configs
 
 import (
 	"errors"
-	"github.com/dashengbuqi/spiderhub/helper"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
+	"path/filepath"
+	"runtime"
 )
 
 var (
-	_inst *Config
+	_inst  *Config
+	osType = runtime.GOOS
 )
 
 type Config struct {
@@ -20,15 +23,15 @@ func init() {
 }
 
 func initConfig() {
-	path := helper.CurDir()
-	sp := helper.GetSeparator()
+	path := CurDir()
+	sp := GetSeparator()
 	fp := path + sp + "ymls" + sp + "params.yml"
 	_inst = New(fp)
 }
 
 func New(filepath string) *Config {
 	//检查文件是否存在
-	if ext := helper.FileExist(filepath); ext == false {
+	if ext := FileExist(filepath); ext == false {
 		panic("yml config file path not found")
 	}
 	raw, err := ioutil.ReadFile(filepath)
@@ -100,4 +103,30 @@ func GetEnv() (string, error) {
 		initConfig()
 	}
 	return _inst.GetEnv()
+}
+
+func FileExist(filename string) bool {
+	fi, err := os.Stat(filename)
+	if err != nil {
+		return false
+	}
+	if fi.IsDir() {
+		return false
+	} else {
+		return true
+	}
+}
+
+func CurDir() string {
+	_, filename, _, _ := runtime.Caller(1)
+	return filepath.Dir(filename)
+}
+
+func GetSeparator() string {
+	if osType == "windows" {
+		return "\\"
+	} else if osType == "linux" {
+		return "/"
+	}
+	return "/"
 }

@@ -1,8 +1,12 @@
 package system
 
 import (
+	"fmt"
+	"github.com/dashengbuqi/spiderhub"
+	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/middleware/mysql"
 	"github.com/go-xorm/xorm"
+	"strings"
 )
 
 const (
@@ -40,6 +44,23 @@ func NewMenu() *Menu {
 	}
 }
 
+func (this *Menu) AttributeLabels(attribute string) string {
+	attributes := map[string]string{
+		"id":         "序号",
+		"task_name":  "名称",
+		"full_name":  "全称",
+		"path":       "接口地址",
+		"parent_id":  "上级",
+		"type":       "类型",
+		"icon":       "图标",
+		"status":     "状态",
+		"sort":       "排序",
+		"updated_at": "更新",
+		"created_at": "创建",
+	}
+	return attributes[attribute]
+}
+
 //获取菜单
 func (this *Menu) GetRowsData(parent_id int64) (result []map[string]interface{}) {
 	var items []SystemMenu
@@ -60,4 +81,50 @@ func (this *Menu) GetRowsData(parent_id int64) (result []map[string]interface{})
 		result = append(result, temp)
 	}
 	return result
+}
+
+//加载菜载列表数据
+func (this *Menu) PostMenuList(post map[string]interface{}) string {
+	var query *xorm.Session
+	var where string
+	if _, ok := post["task_name"]; ok {
+		where = fmt.Sprintf("task_name like '%?%'", strings.TrimSpace(post["task_name"].(string)))
+	}
+	query = this.session.Table(new(SystemMenu)).Where(where)
+	result := this.assembleTable(query, post)
+	return result.ToJson()
+}
+
+func (this *Menu) assembleTable(query *xorm.Session, params map[string]interface{}) *helper.ResultEasyUItem {
+	page := params["page"].(int)
+	pageSize := params["pageSize"].(int)
+
+	pages := &helper.Pagination{
+		Page:     page,
+		PageSize: pageSize,
+	}
+	var sortStr string
+	if _, ok := params["sort"]; ok {
+		if len(params["sort"].(string)) > 0 {
+			sortKeys := strings.Split(params["sort"].(string), ",")
+			sortValues := strings.Split(params["order"].(string), ",")
+			for i, key := range sortKeys {
+				sortStr += key + " " + sortValues[i] + ","
+			}
+		}
+	}
+	var items []SystemMenu
+	limit := pages.GetLimit()
+	offset := pages.GetOffset()
+	sortBy := strings.Trim(sortStr, ",")
+
+	total, err := query.OrderBy(sortBy).Limit(limit, offset).FindAndCount(&items)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err.Error())
+	}
+	pages.Total = total
+	return &helper.ResultEasyUItem{
+		Pages:  pages,
+		Models: items,
+	}
 }
