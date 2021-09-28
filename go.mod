@@ -21,7 +21,7 @@ require (
 	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/iris-contrib/jade v1.1.4 // indirect
 	github.com/iris-contrib/schema v0.0.2 // indirect
-	github.com/kataras/golog v0.0.18
+	github.com/kataras/golog v0.0.18 // indirect
 	github.com/kataras/iris/v12 v12.1.8
 	github.com/kataras/neffos v0.0.16 // indirect
 	github.com/kennygrant/sanitize v1.2.4 // indirect

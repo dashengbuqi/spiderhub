@@ -1,0 +1,56 @@
+
+<div class="edit_con autoWidth">
+    <div class="edit_arcontent">
+        <form id="form" method="post">
+            <table class="table-page">
+                <tr>
+                    <th>菜单名：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="form[task_name]" value="{{.task_name}}" style="width:170px;"  data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>菜单全称：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="form[full_name]" value="{{.full_name}}" style="width:170px;" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>请求地址：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="form[task_uri]" value="{{.path}}" style="width:170px;"  data-options="required:true" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>图标：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="form[icon]" value="{{.icon}}" style="width: 60px" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>排序：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="form[sort]" value="{{.sort}}" style="width:50px;" placeholder="10" data-options="required:true,validType:'number[1,100]'"/>
+                    </td>
+                </tr>
+                <tr>
+                    <th>类型：</th>
+                    <td>{{ template "includes/widgets/radio.html" "form[type]" ""}}</td>
+                </tr>
+                <tr>
+                    <th>上级菜单：</th>
+                    <td>
+
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+    function dialogSave() {
+        $('#form').custom_form({
+            url:'{{urlpath "menu" "modify"}}?id={{.id}}'
+        });
+    }
+</script>

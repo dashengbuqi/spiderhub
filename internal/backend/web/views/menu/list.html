@@ -35,19 +35,19 @@
             columns : [
                 [
                     {title : '菜单名称',field : 'task_name',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
-                    {title : '上级菜单',field : 'parent_id',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
-                    {title : '类型',field : 'type',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
-                    {title : '状态',field : 'status',width : $(this).width() * 0.05,align : 'center',halign:'center',
+                    {title : '上级菜单',field : 'ui_parent_id',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
+                    {title : '类型',field : 'ui_type',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
+                    {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
                         formatter:function (value,rec) {
                             return '<span class="color_'+rec.status+'">'+value+'</span>';
                         }},
                     {title : '排序',field : 'sort',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
-                    {title : '创建时间',field : 'created_at',width : $(this).width() * 0.15,align : 'left',halign:'center'},
+                    {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.15,align : 'left',halign:'center'},
                     {title : '操作',field : 'opt',width : $(this).width() * 0.2,align : 'center',halign:'center',
                         formatter : function(value, rec) {
                             var str = "";
-                            str += '<a href="javascript:void(0)" onclick="update(\'' + rec.id + '\');">修改</a> ';
-                            str += '<a href="javascript:void(0)" onclick="del(\'' + rec.id + '\');">删除</a> ';
+                            str += '<a href="javascript:void(0)" onclick="update(' + rec.id +');">修改</a> ';
+                            str += '<a href="javascript:void(0)" onclick="del(' + rec.id + ');">删除</a> ';
                             return str;
                         }
                     }
@@ -61,7 +61,7 @@
     }
 
     function update(id) {
-        showMyWindow("修改","<?=Url::to(['edit','id'=>''])?>"+id,false,550,450);
+        showMyWindow("修改","/menu/edit?id="+id,false,550,450);
     }
 
     /*

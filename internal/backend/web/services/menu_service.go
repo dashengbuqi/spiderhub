@@ -8,6 +8,7 @@ import (
 type MenuService interface {
 	GetLevelMenu(parant_id int64) string
 	PostMenuList(post map[string]interface{}) string
+	GetRowBy(id int64) *system.SystemMenu
 }
 
 type menuService struct {
@@ -29,5 +30,10 @@ func (this *menuService) GetLevelMenu(parent_id int64) string {
 
 func (this *menuService) PostMenuList(post map[string]interface{}) string {
 	result := this.repo.PostMenuList(post)
+	return result
+}
+
+func (this *menuService) GetRowBy(id int64) *system.SystemMenu {
+	result, _ := this.repo.GetRowBy(id)
 	return result
 }

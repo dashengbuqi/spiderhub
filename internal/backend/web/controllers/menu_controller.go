@@ -32,3 +32,21 @@ func (this *MenuController) PostList() string {
 	})
 	return result
 }
+
+func (this *MenuController) GetEdit() mvc.Result {
+	id, _ := this.Ctx.URLParamInt64("id")
+	model := this.Service.GetRowBy(id)
+	return &mvc.View{
+		Name: "menu/edit.html",
+		Data: iris.Map{
+			"id":        model.Id,
+			"task_name": model.TaskName,
+			"full_name": model.FullName,
+			"path":      model.Path,
+			"icon":      model.Icon,
+			"sort":      model.Sort,
+			"type":      model.Type,
+			"parent_id": model.ParentId,
+		},
+	}
+}

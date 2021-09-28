@@ -693,7 +693,7 @@ function showMyWindow(title, href, isReadonly, width, height, modal,
                                                 },
 						width : width === undefined ? bodyWidth : width,
 						height : height === undefined ? bodyHeight : height,
-						content : '<iframe id="showMyWindowId" scrolling="yes" frameborder="0"  src=/BackendUI/dialog_common.php?1=1'
+						content : '<iframe id="showMyWindowId" scrolling="yes" frameborder="0"  src=/default/dialog?1=1'
 								+ parm
 								+ '&url='
 								+ encodeURIComponent(href)

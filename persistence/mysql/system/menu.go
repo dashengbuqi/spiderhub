@@ -20,6 +20,20 @@ const (
 	MENU_STATUS_ENABLE  = 1
 )
 
+var (
+	statusArr = map[int]string{
+		MENU_STATUS_DISABLE: "禁止",
+		MENU_STATUS_ENABLE:  "正常",
+	}
+	typeArr = map[int]string{
+		MENU_TYPE_CATALOG: "目录",
+		MENU_TYPE_COLUMN:  "栏目",
+		MENU_TYPE_MENU:    "菜单",
+		MENU_TYPE_BUTTON:  "按钮",
+		MENU_TYPE_EVENT:   "事件",
+	}
+)
+
 type SystemMenu struct {
 	Id        int64  `json:"id"`
 	TaskName  string `json:"task_name"`
@@ -32,6 +46,40 @@ type SystemMenu struct {
 	Sort      int    `json:"sort"`
 	UpdatedAt int64  `json:"updated_at"`
 	CreatedAt int64  `json:"created_at"`
+}
+
+type SystemMenuBackend struct {
+	Id          int64  `json:"id"`
+	TaskName    string `json:"task_name"`
+	FullName    string `json:"full_name"`
+	Path        string `json:"path"`
+	ParentId    int64  `json:"parent_id"`
+	UiParentId  string `json:"ui_parent_id" xorm:"-"`
+	Type        int    `json:"type"`
+	UiType      string `json:"ui_type" xorm:"-"`
+	Icon        string `json:"icon"`
+	Status      int    `json:"status"`
+	UiStatus    string `json:"ui_status" xorm:"-"`
+	Sort        int    `json:"sort"`
+	UpdatedAt   int64  `json:"updated_at"`
+	CreatedAt   int64  `json:"created_at"`
+	UiCreatedAt string `json:"ui_created_at" xorm:"-"`
+}
+
+func (this *SystemMenuBackend) callUI() {
+	this.UiCreatedAt = helper.FmtDateTime(this.CreatedAt)
+	this.UiStatus = statusArr[this.Status]
+	this.UiType = typeArr[this.Type]
+	this.UiParentId = this.GetParentName(this.ParentId)
+}
+
+func (this *SystemMenuBackend) GetParentName(parent_id int64) string {
+	if parent_id == 0 {
+		return ""
+	}
+	m := NewMenu()
+	data, _ := m.GetRowBy(parent_id)
+	return data.TaskName
 }
 
 type Menu struct {
@@ -59,6 +107,12 @@ func (this *Menu) AttributeLabels(attribute string) string {
 		"created_at": "创建",
 	}
 	return attributes[attribute]
+}
+
+func (this *Menu) GetRowBy(id int64) (*SystemMenu, error) {
+	var item SystemMenu
+	_, err := this.session.Where("id = ?", id).Get(&item)
+	return &item, err
 }
 
 //获取菜单
@@ -113,7 +167,7 @@ func (this *Menu) assembleTable(query *xorm.Session, params map[string]interface
 			}
 		}
 	}
-	var items []SystemMenu
+	var items []*SystemMenuBackend
 	limit := pages.GetLimit()
 	offset := pages.GetOffset()
 	sortBy := strings.Trim(sortStr, ",")
@@ -121,6 +175,9 @@ func (this *Menu) assembleTable(query *xorm.Session, params map[string]interface
 	total, err := query.OrderBy(sortBy).Limit(limit, offset).FindAndCount(&items)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err.Error())
+	}
+	for _, item := range items {
+		item.callUI()
 	}
 	pages.Total = total
 	return &helper.ResultEasyUItem{

@@ -30,3 +30,14 @@ func (this *DefaultController) GetMain() mvc.Result {
 		Name: "default/main.html",
 	}
 }
+
+func (this *DefaultController) GetDialog() mvc.Result {
+	uri := this.Ctx.URLParamDefault("url", "")
+	isRead, _ := this.Ctx.URLParamBool("isReadonly")
+
+	return &mvc.View{
+		Name:   "default/dialog.html",
+		Data:   iris.Map{"url": uri, "is_read": isRead},
+		Layout: "layout/dialog.html",
+	}
+}

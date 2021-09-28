@@ -1,0 +1,40 @@
+
+<div class="easyui-layout" style="text-align: left;" fit="true">
+    <div id="dialogCommonId" region="center" border="false"
+         style="padding: 10px; background: #fff; border: 1px solid #ccc;"
+         href="{{.url}}">
+    </div>
+    <div id="buttonArea" region="south" border="false" style="display: none; text-align: center; padding: 5px 13px 0px 0px;">
+    </div>
+</div>
+<script>
+    var isRead = {{.is_read}}
+    var btnHtml = "";
+    if (isRead == false) {
+        btnHtml += '<a href="javascript:void(0)" class="common"  onclick="javascript:dialogSave();return false;">保存</a>';
+    }
+    btnHtml += '<a href="javascript:void(0)" class="common_close" onclick="parent.closeMyWindow();return false;">关闭</a>';
+    $("#buttonArea").html(btnHtml);
+    $(function() {
+        if ($("#dialogCommonId").html() != '') {
+            if (typeof (parent.definedMyWindowButton) != "undefined" || typeof (definedMyWindowButton) != "undefined") {
+                var definedButton = typeof (parent.definedMyWindowButton) != "undefined" ? parent.definedMyWindowButton : definedMyWindowButton;
+                if (typeof (definedButton) != "undefined" && definedButton != "") {
+                    var arr = definedButton.split("|");
+                    var html = "";
+                    for (var i = 0; i < arr.length; i++) {
+                        var obj = arr[i].split(",");
+                        html += '<a href="javascript:void(0)" class="common" onclick="javascript:' + obj[1] + '();return false;">' + obj[0]
+                            + '</a>';
+                    }
+                    $("#buttonArea").html(html);
+                }
+            }
+            $("#buttonArea").css("display", "block");
+            if (typeof (parent.definedMyWindowButton) != "undefined") {parent.definedMyWindowButton = "";}
+            if (typeof (definedMyWindowButton) != "undefined") {definedMyWindowButton = "";}
+        }
+
+        $("#buttonArea").parent().css("bottom", "5px").css("top","");
+    });
+</script>
