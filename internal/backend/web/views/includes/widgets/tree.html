@@ -1,0 +1,14 @@
+<input id="{{.Id}}" name="{{.Name}}" style="height: 30px;width: 180px" />
+<script type="text/javascript">
+    $(function () {
+        var d = JSON.parse({{.Data}});
+        $("#{{.Id}}").combotree({
+            valueField:"id",
+            textField:"text",
+            width: {{.Width}},
+            editable: {{.Editable}},
+            data:d,
+            value:{{.Value}}
+        })
+    })
+</script>

@@ -22,7 +22,8 @@ func Run() {
 	//输入IRIS日志
 	app.Logger().SetLevel(params["Level"].(string))
 	app.Favicon(base + "/assets/favicon.ico")
-	app.RegisterView(iris.HTML(base+"/web/views", ".html").Layout("layout/main.html").Reload(params["Reload"].(bool)))
+	tmpl := iris.HTML(base+"/web/views", ".html").Layout("layout/main.html").Reload(params["Reload"].(bool))
+	app.RegisterView(tmpl)
 	app.HandleDir("/static", base+"/assets")
 	//默认
 	mvc.Configure(app.Party("/"), index)

@@ -6,7 +6,7 @@
                 <tr>
                     <th>菜单名：</th>
                     <td>
-                        <input class="easyui-validatebox text" name="form[task_name]" value="{{.task_name}}" style="width:170px;"  data-options="required:true" />
+                        <input class="easyui-validatebox text" name="form[task_name]" value="{{ .task_name }}" style="width:170px;"  data-options="required:true" />
                     </td>
                 </tr>
                 <tr>
@@ -35,12 +35,12 @@
                 </tr>
                 <tr>
                     <th>类型：</th>
-                    <td>{{ template "includes/widgets/radio.html" "form[type]" ""}}</td>
+                    <td>{{ template "includes/widgets/combox.html" .types}}</td>
                 </tr>
                 <tr>
                     <th>上级菜单：</th>
                     <td>
-
+                        {{ template "includes/widgets/tree.html" .parents}}
                     </td>
                 </tr>
             </table>

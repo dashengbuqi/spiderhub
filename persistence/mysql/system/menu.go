@@ -1,6 +1,7 @@
 package system
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
@@ -21,11 +22,11 @@ const (
 )
 
 var (
-	statusArr = map[int]string{
+	StatusArr = map[int]string{
 		MENU_STATUS_DISABLE: "禁止",
 		MENU_STATUS_ENABLE:  "正常",
 	}
-	typeArr = map[int]string{
+	TypeArr = map[int]string{
 		MENU_TYPE_CATALOG: "目录",
 		MENU_TYPE_COLUMN:  "栏目",
 		MENU_TYPE_MENU:    "菜单",
@@ -48,6 +49,33 @@ type SystemMenu struct {
 	CreatedAt int64  `json:"created_at"`
 }
 
+func (this *SystemMenu) GetTypeComboList() string {
+	items := []helper.ComboData{
+		{
+			Id:   MENU_TYPE_CATALOG,
+			Text: TypeArr[MENU_TYPE_CATALOG],
+		},
+		{
+			Id:   MENU_TYPE_COLUMN,
+			Text: TypeArr[MENU_TYPE_COLUMN],
+		},
+		{
+			Id:   MENU_TYPE_MENU,
+			Text: TypeArr[MENU_TYPE_MENU],
+		},
+		{
+			Id:   MENU_TYPE_BUTTON,
+			Text: TypeArr[MENU_TYPE_BUTTON],
+		},
+		{
+			Id:   MENU_TYPE_EVENT,
+			Text: TypeArr[MENU_TYPE_EVENT],
+		},
+	}
+	result, _ := json.Marshal(items)
+	return string(result)
+}
+
 type SystemMenuBackend struct {
 	Id          int64  `json:"id"`
 	TaskName    string `json:"task_name"`
@@ -68,8 +96,8 @@ type SystemMenuBackend struct {
 
 func (this *SystemMenuBackend) callUI() {
 	this.UiCreatedAt = helper.FmtDateTime(this.CreatedAt)
-	this.UiStatus = statusArr[this.Status]
-	this.UiType = typeArr[this.Type]
+	this.UiStatus = StatusArr[this.Status]
+	this.UiType = TypeArr[this.Type]
 	this.UiParentId = this.GetParentName(this.ParentId)
 }
 
@@ -107,6 +135,35 @@ func (this *Menu) AttributeLabels(attribute string) string {
 		"created_at": "创建",
 	}
 	return attributes[attribute]
+}
+
+func (this *Menu) GetMenuTreeList() string {
+	data := map[string]interface{}{
+		"id":       0,
+		"text":     "根菜单",
+		"children": this.relationMenu(0),
+	}
+	result, _ := json.Marshal(data)
+	return string(result)
+}
+
+func (this *Menu) relationMenu(parent_id int64) (result []map[string]interface{}) {
+	var items []SystemMenu
+	err := this.session.Where("parent_id = ? AND status = ? AND type <> ?", parent_id, MENU_STATUS_ENABLE, MENU_TYPE_BUTTON).
+		OrderBy("sort").
+		Find(&items)
+	if err != nil {
+		return result
+	}
+	for _, item := range items {
+		temp := map[string]interface{}{
+			"id":       item.Id,
+			"text":     item.TaskName,
+			"children": this.relationMenu(item.Id),
+		}
+		result = append(result, temp)
+	}
+	return result
 }
 
 func (this *Menu) GetRowBy(id int64) (*SystemMenu, error) {

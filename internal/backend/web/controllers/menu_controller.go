@@ -2,6 +2,8 @@ package controllers
 
 import (
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
+	"github.com/dashengbuqi/spiderhub/internal/backend/widgets"
+	"github.com/dashengbuqi/spiderhub/persistence/mysql/system"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 )
@@ -33,10 +35,34 @@ func (this *MenuController) PostList() string {
 	return result
 }
 
-func (this *MenuController) GetEdit() mvc.Result {
+func (this *MenuController) GetEdit() {
 	id, _ := this.Ctx.URLParamInt64("id")
 	model := this.Service.GetRowBy(id)
-	return &mvc.View{
+	this.Ctx.ViewData("id", model.Id)
+	this.Ctx.ViewData("task_name", model.TaskName)
+	this.Ctx.ViewData("full_name", model.FullName)
+	this.Ctx.ViewData("path", model.Path)
+	this.Ctx.ViewData("icon", model.Icon)
+	this.Ctx.ViewData("sort", model.Sort)
+	this.Ctx.ViewData("type", model.Type)
+	this.Ctx.ViewData("parent_id", model.ParentId)
+	this.Ctx.ViewData("types", widgets.Combobox{
+		Id:       "type",
+		Name:     "form[type]",
+		Value:    system.TypeArr[model.Type],
+		Data:     model.GetTypeComboList(),
+		Multiple: false,
+	})
+	m := system.NewMenu()
+	this.Ctx.ViewData("parents", widgets.Combobox{
+		Id:       "parent_id",
+		Name:     "form[parent_id]",
+		Value:    model.ParentId,
+		Editable: false,
+		Data:     m.GetMenuTreeList(),
+	})
+	this.Ctx.View("menu/edit.html")
+	/*return &mvc.View{
 		Name: "menu/edit.html",
 		Data: iris.Map{
 			"id":        model.Id,
@@ -48,5 +74,5 @@ func (this *MenuController) GetEdit() mvc.Result {
 			"type":      model.Type,
 			"parent_id": model.ParentId,
 		},
-	}
+	}*/
 }

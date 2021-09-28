@@ -1,0 +1,16 @@
+<input id="{{.Id}}" name="{{.Name}}" class="easyui-combobox" style="height: 30px" />
+<script type="text/javascript">
+    $(function () {
+        $("#{{.Id}}").combobox({
+            valueField:"id",
+            textField:"text",
+            required: {{.Required}},
+            editable: {{.Editable}},
+            value: {{.Value}},
+            data: JSON.parse({{.Data}}),
+            multiple: {{.Multiple}},
+            onChange: {{.OnChange}}
+        })
+    })
+    function DefaultOnChange() {}
+</script>
