@@ -2,11 +2,12 @@
 <script type="text/javascript">
     $(function () {
         var d = JSON.parse({{.Data}});
+        console.log(d);
         $("#{{.Id}}").combotree({
             valueField:"id",
             textField:"text",
-            width: {{.Width}},
             editable: {{.Editable}},
+            width: 300,
             data:d,
             value:{{.Value}}
         })

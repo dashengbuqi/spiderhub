@@ -138,10 +138,12 @@ func (this *Menu) AttributeLabels(attribute string) string {
 }
 
 func (this *Menu) GetMenuTreeList() string {
-	data := map[string]interface{}{
-		"id":       0,
-		"text":     "根菜单",
-		"children": this.relationMenu(0),
+	data := []map[string]interface{}{
+		{
+			"id":       0,
+			"text":     "根菜单",
+			"children": this.relationMenu(0),
+		},
 	}
 	result, _ := json.Marshal(data)
 	return string(result)
@@ -149,7 +151,7 @@ func (this *Menu) GetMenuTreeList() string {
 
 func (this *Menu) relationMenu(parent_id int64) (result []map[string]interface{}) {
 	var items []SystemMenu
-	err := this.session.Where("parent_id = ? AND status = ? AND type <> ?", parent_id, MENU_STATUS_ENABLE, MENU_TYPE_BUTTON).
+	err := this.session.Where("parent_id = ? AND status = ?", parent_id, MENU_STATUS_ENABLE).
 		OrderBy("sort").
 		Find(&items)
 	if err != nil {
