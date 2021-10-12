@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
 	"github.com/dashengbuqi/spiderhub/internal/backend/widgets"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/system"
@@ -35,8 +36,14 @@ func (this *MenuController) PostList() string {
 	return result
 }
 
-func (this *MenuController) PostEdit() {
-
+func (this *MenuController) PostEdit() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	form := this.Ctx.FormValues()
+	err := this.Service.ModifyMenuItem(id, form)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("操作成功", nil)
 }
 
 func (this *MenuController) GetEdit() {
@@ -52,19 +59,29 @@ func (this *MenuController) GetEdit() {
 	this.Ctx.ViewData("parent_id", model.ParentId)
 	this.Ctx.ViewData("types", widgets.Combobox{
 		Id:       "type",
-		Name:     "form[type]",
-		Value:    system.TypeArr[model.Type],
+		Name:     "type",
+		Value:    model.Type,
 		Data:     model.GetTypeComboList(),
 		Multiple: false,
+		OnChange: "DefaultOnChange",
 	})
 	m := system.NewMenu()
 	this.Ctx.ViewData("parents", widgets.Combobox{
 		Id:       "parent_id",
-		Name:     "form[parent_id]",
+		Name:     "parent_id",
 		Value:    model.ParentId,
 		Editable: false,
 		Data:     m.GetMenuTreeList(),
 		Width:    200,
 	})
 	this.Ctx.View("menu/edit.html")
+}
+
+func (this *MenuController) Delete() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	err := this.Service.RemoveMenu(id)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("操作成功", nil)
 }

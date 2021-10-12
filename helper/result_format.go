@@ -27,3 +27,29 @@ func (this *ResultEasyUItem) ToMap() map[string]interface{} {
 	this.process()
 	return this._result
 }
+
+type resultFormat struct {
+	Status int         `json:"status"`
+	Msg    string      `json:"msg"`
+	Data   interface{} `json:"data"`
+}
+
+func ResultError(msg string) string {
+	o_o := &resultFormat{
+		Status: 0,
+		Msg:    msg,
+		Data:   nil,
+	}
+	bt, _ := json.Marshal(o_o)
+	return string(bt)
+}
+
+func ResultSuccess(msg string, data interface{}) string {
+	o_o := resultFormat{
+		Status: 1,
+		Msg:    msg,
+		Data:   data,
+	}
+	bt, _ := json.Marshal(o_o)
+	return string(bt)
+}

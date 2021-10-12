@@ -1,5 +1,7 @@
 <input id="{{.Id}}" name="{{.Name}}" class="easyui-combobox" style="height: 30px" />
 <script type="text/javascript">
+    function DefaultOnChange(n,o) {
+    }
     $(function () {
         $("#{{.Id}}").combobox({
             valueField:"id",
@@ -9,8 +11,7 @@
             value: {{.Value}},
             data: JSON.parse({{.Data}}),
             multiple: {{.Multiple}},
-            onChange: {{.OnChange}}
+            onChange: eval({{.OnChange}})
         })
     })
-    function DefaultOnChange() {}
 </script>

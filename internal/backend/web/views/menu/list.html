@@ -41,7 +41,7 @@
                         formatter:function (value,rec) {
                             return '<span class="color_'+rec.status+'">'+value+'</span>';
                         }},
-                    {title : '排序',field : 'sort',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
+                    {title : '排序',field : 'sort',width : $(this).width() * 0.05,align : 'left',halign:'center',sortable : true},
                     {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.15,align : 'left',halign:'center'},
                     {title : '操作',field : 'opt',width : $(this).width() * 0.2,align : 'center',halign:'center',
                         formatter : function(value, rec) {
@@ -57,7 +57,7 @@
     });
 
     function add() {
-        showMyWindow("新增","<?=Url::to(['edit'])?>",false,550,450);
+        showMyWindow("新增","/menu/edit",false,550,450);
     }
 
     function update(id) {
@@ -68,7 +68,7 @@
     * 用户删除
     */
     function del(id) {
-        custom_confirm_ajax("操作提示","此操作不可逆，确认删除？","<?=Url::to(['delete','id'=>''])?>"+id,"get");
+        custom_confirm_ajax("操作提示","此操作不可逆，确认删除？","/menu?id="+id,"delete");
     }
 </script>
 <style>

@@ -8,6 +8,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/middleware/mysql"
 	"github.com/go-xorm/xorm"
 	"strings"
+	"time"
 )
 
 const (
@@ -51,6 +52,10 @@ type SystemMenu struct {
 
 func (this *SystemMenu) GetTypeComboList() string {
 	items := []helper.ComboData{
+		{
+			Id:   0,
+			Text: "请选择菜单类型",
+		},
 		{
 			Id:   MENU_TYPE_CATALOG,
 			Text: TypeArr[MENU_TYPE_CATALOG],
@@ -243,4 +248,21 @@ func (this *Menu) assembleTable(query *xorm.Session, params map[string]interface
 		Pages:  pages,
 		Models: items,
 	}
+}
+
+func (this *Menu) ModifyItem(id int64, item *SystemMenu) error {
+	var err error
+	if id == 0 {
+		item.Status = MENU_STATUS_ENABLE
+		_, err = this.session.InsertOne(item)
+	} else {
+		item.UpdatedAt = time.Now().Unix()
+		_, err = this.session.Where("id=?", id).Cols("task_name", "full_name", "path", "parent_id", "type", "icon", "sort", "updated_at").Update(item)
+	}
+	return err
+}
+
+func (this *Menu) RemoveItem(id int64) error {
+	_, err := this.session.Where("id=?", id).Delete(new(SystemMenu))
+	return err
 }

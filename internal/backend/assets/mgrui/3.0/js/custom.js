@@ -71,7 +71,11 @@ function custom_confirm_ajax(title,msg,url,ajax_type,reload){
                 if (reload){
                     reloadDatagrid();
                 }
-                $.messager.alert('温馨提示',json.msg);
+                var iconStr = "info";
+                if (json.status == 0) {
+                    iconStr =  "error"
+                }
+                $.messager.alert('温馨提示',json.msg,iconStr);
 
             }
         });
@@ -88,39 +92,6 @@ function custom_confirm_ajax(title,msg,url,ajax_type,reload){
             messagebox.remove();
         });  
 }
-/*
- * 此方法为custom_confirm_ajax 重写前方法
- * 
-function self_confirm_ajax(title,msg,url,ajax_type){
-    if(ajax_type==null){
-        ajax_type="post";
-    }
-    showConfirm(title,msg,function(){
-        showProcess(true, '温馨提示', '正在提交数据...');
-        $.ajax({
-            url:url,
-            type:ajax_type,
-            dataType:"json",
-            success : function(data) {
-                var json = data;
-                showProcess(false);
-                reloadDatagrid();
-                $.messager.alert('温馨提示',json.msg);
-                //showMsg("json.msg",true,function(){console.log("reload");});
-                return;
-//                 if (json.status) {
-//                    
-////                    showMsg(json.msg,false,false,"info");
-////                    $("#datagrid").datagrid("reload");
-////                    $('#datagrid').datagrid('clearSelections');
-//                 }else {
-//                    showMsg(json.msg, false, false, "error");
-//                 }
-            }
-        });
-    });
-}
-*/
 jQuery.fn.extend({
     everyTime: function(interval, label, fn, times, belay) {
         return this.each(function() {

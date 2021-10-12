@@ -78,7 +78,7 @@ func FmtDateTime(t int64) string {
 			hm := time.Unix(t, 0).Format("15:04")
 			return weekDayArr[wd] + " " + hm
 		} else {
-			res := time.Unix(t, 0).Format("2006-01-02")
+			res := time.Unix(t, 0).Format("2006-01-02 15:04")
 			return res
 		}
 	}
