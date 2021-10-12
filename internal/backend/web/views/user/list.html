@@ -11,7 +11,7 @@
 <script type="text/javascript">
     // 显示用户自定义搜索条件的标识符，true为显示
     var needShowUserCondition = true;
-    var dataUrl = "/menu/list";
+    var dataUrl = "/user/list";
     $(function() {
         $('#datagrid').datagrid({
             width : getDatagridWidth(),
@@ -34,14 +34,14 @@
             onLoadSuccess : dataGridOnLoadSuccess,
             columns : [
                 [
-                    {title : '菜单名称',field : 'task_name',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
-                    {title : '上级菜单',field : 'ui_parent_id',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
-                    {title : '类型',field : 'ui_type',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
+                    {title : '用户名',field : 'username',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
+                    {title : '邮箱',field : 'email',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
+                    {title : '手机号',field : 'mobile',width : $(this).width() * 0.1,align : 'left',halign:'center',sortable : true},
                     {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
                         formatter:function (value,rec) {
                             return '<span class="color_'+rec.status+'">'+value+'</span>';
                         }},
-                    {title : '排序',field : 'sort',width : $(this).width() * 0.05,align : 'left',halign:'center',sortable : true},
+                    {title : '登录(次)',field : 'last_login_time',width : $(this).width() * 0.05,align : 'left',halign:'center',sortable : true},
                     {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.15,align : 'left',halign:'center'},
                     {title : '操作',field : 'opt',width : $(this).width() * 0.2,align : 'center',halign:'center',
                         formatter : function(value, rec) {
@@ -57,18 +57,17 @@
     });
 
     function add() {
-        showMyWindow("新增","/menu/edit",false,550,450);
+        showMyWindow("新增","/user/edit",false,550,450);
     }
 
     function update(id) {
-        showMyWindow("修改","/menu/edit?id="+id,false,550,450);
+        showMyWindow("修改","/user/edit?id="+id,false,550,450);
     }
-
     /*
     * 用户删除
     */
     function del(id) {
-        custom_confirm_ajax("操作提示","此操作不可逆，确认删除？","/menu/remove?id="+id,"get");
+        custom_confirm_ajax("操作提示","此操作不可逆，确认删除？","/user/remove?id="+id,"get");
     }
 </script>
 <style>

@@ -3,13 +3,14 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/system"
 	"strconv"
 )
 
 type MenuService interface {
 	GetLevelMenu(parant_id int64) string
-	PostMenuList(post map[string]interface{}) string
+	PostMenuList(post *helper.RequestParams) string
 	GetRowBy(id int64) *system.SystemMenu
 	ModifyMenuItem(id int64, form map[string][]string) error
 	RemoveMenu(id int64) error
@@ -75,7 +76,7 @@ func (this *menuService) GetLevelMenu(parent_id int64) string {
 	return string(jStr)
 }
 
-func (this *menuService) PostMenuList(post map[string]interface{}) string {
+func (this *menuService) PostMenuList(post *helper.RequestParams) string {
 	result := this.repo.PostMenuList(post)
 	return result
 }

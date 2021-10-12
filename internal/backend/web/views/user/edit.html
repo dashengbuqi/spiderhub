@@ -1,0 +1,46 @@
+<div class="edit_con autoWidth">
+    <div class="edit_arcontent">
+        <form id="form" method="post">
+            <table class="table-page">
+                <tr>
+                    <th>用户名：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="username" value="{{.username}}" style="width:170px;"  validType="length[2,16]" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>手机号：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="mobile" value="{{.mobile}}" style="width:170px;"  validType="mobileGroup" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>邮箱：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="email" value="{{.email}}" style="width:170px;"  validType="isEmail" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>登录密码：</th>
+                    <td>
+                        <input id="password" validType="length[4,32]" class="easyui-validatebox text" type="password" value="" />
+                        <span style="color: #898989;">留空，不修改密码</span>
+                    </td>
+                </tr>
+                <tr>
+                    <th>确认密码：</th>
+                    <td>
+                        <input id="repassword" name="password" type="password" class="easyui-validatebox text" validType="equalTo['#password']" invalidMessage="两次输入密码不匹配"/>
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+    function dialogSave() {
+        $('#form').custom_form({
+            url:"/menu/edit?id={{.id}}",
+        });
+    }
+</script>

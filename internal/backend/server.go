@@ -31,6 +31,8 @@ func Run() {
 	mvc.Configure(app.Party("/default"), index)
 	//菜单
 	mvc.Configure(app.Party("/menu"), menu)
+	//用户管理
+	mvc.Configure(app.Party("/user"), user)
 	//登录
 	mvc.Configure(app.Party("/login"), login)
 
@@ -60,6 +62,12 @@ func menu(app *mvc.Application) {
 	menuService := services.NewMenuService()
 	app.Register(menuService)
 	app.Handle(new(controllers.MenuController))
+}
+
+func user(app *mvc.Application) {
+	us := services.NewUserService()
+	app.Register(us)
+	app.Handle(new(controllers.UserController))
 }
 
 func login(app *mvc.Application) {

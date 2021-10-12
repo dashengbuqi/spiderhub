@@ -23,15 +23,15 @@ func (this *MenuController) GetList() mvc.Result {
 
 //返回列表数据
 func (this *MenuController) PostList() string {
-	page := this.Ctx.PostValueIntDefault("page", 1)
-	pageSize := this.Ctx.PostValueIntDefault("rows", 15)
+	page, _ := this.Ctx.PostValueInt("page")
+	pageSize, _ := this.Ctx.PostValueInt("rows")
 	sort := this.Ctx.PostValueDefault("sort", "id")
 	order := this.Ctx.PostValueDefault("order", "desc")
-	result := this.Service.PostMenuList(map[string]interface{}{
-		"page":     page,
-		"pageSize": pageSize,
-		"sort":     sort,
-		"order":    order,
+	result := this.Service.PostMenuList(&helper.RequestParams{
+		Page:     page,
+		PageSize: pageSize,
+		Sort:     sort,
+		Order:    order,
 	})
 	return result
 }
@@ -77,7 +77,7 @@ func (this *MenuController) GetEdit() {
 	this.Ctx.View("menu/edit.html")
 }
 
-func (this *MenuController) Delete() string {
+func (this *MenuController) GetRemove() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	err := this.Service.RemoveMenu(id)
 	if err != nil {

@@ -202,33 +202,33 @@ func (this *Menu) GetRowsData(parent_id int64) (result []map[string]interface{})
 }
 
 //加载菜载列表数据
-func (this *Menu) PostMenuList(post map[string]interface{}) string {
+func (this *Menu) PostMenuList(req *helper.RequestParams) string {
 	var query *xorm.Session
 	var where string
-	if _, ok := post["task_name"]; ok {
-		where = fmt.Sprintf("task_name like '%?%'", strings.TrimSpace(post["task_name"].(string)))
+	if req.Params != nil {
+		params := req.Params.(map[string]interface{})
+		if _, ok := params["task_name"]; ok {
+			where = fmt.Sprintf("task_name like '%?%'", strings.TrimSpace(params["task_name"].(string)))
+		}
 	}
+
 	query = this.session.Table(new(SystemMenu)).Where(where)
-	result := this.assembleTable(query, post)
+	result := this.assembleTable(query, req)
 	return result.ToJson()
 }
 
-func (this *Menu) assembleTable(query *xorm.Session, params map[string]interface{}) *helper.ResultEasyUItem {
-	page := params["page"].(int)
-	pageSize := params["pageSize"].(int)
-
+func (this *Menu) assembleTable(query *xorm.Session, req *helper.RequestParams) *helper.ResultEasyUItem {
 	pages := &helper.Pagination{
-		Page:     page,
-		PageSize: pageSize,
+		Page:     req.Page,
+		PageSize: req.PageSize,
 	}
 	var sortStr string
-	if _, ok := params["sort"]; ok {
-		if len(params["sort"].(string)) > 0 {
-			sortKeys := strings.Split(params["sort"].(string), ",")
-			sortValues := strings.Split(params["order"].(string), ",")
-			for i, key := range sortKeys {
-				sortStr += key + " " + sortValues[i] + ","
-			}
+
+	if len(req.Sort) > 0 {
+		sortKeys := strings.Split(req.Sort, ",")
+		sortValues := strings.Split(req.Order, ",")
+		for i, key := range sortKeys {
+			sortStr += key + " " + sortValues[i] + ","
 		}
 	}
 	var items []*SystemMenuBackend

@@ -1,0 +1,41 @@
+package controllers
+
+import (
+	"github.com/dashengbuqi/spiderhub/helper"
+	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
+	"github.com/kataras/iris/v12"
+	"github.com/kataras/iris/v12/mvc"
+)
+
+type UserController struct {
+	Ctx     iris.Context
+	Service services.UserService
+}
+
+//加载列表视图
+func (this *UserController) GetList() mvc.Result {
+	return &mvc.View{
+		Name: "user/list.html",
+	}
+}
+
+func (this *UserController) PostList() string {
+	page, _ := this.Ctx.PostValueInt("page")
+	pageSize, _ := this.Ctx.PostValueInt("rows")
+	sort := this.Ctx.PostValueDefault("sort", "id")
+	order := this.Ctx.PostValueDefault("order", "desc")
+	result := this.Service.GetUserList(&helper.RequestParams{
+		Page:     page,
+		PageSize: pageSize,
+		Sort:     sort,
+		Order:    order,
+	})
+	return result
+}
+
+func (this *UserController) GetEdit() {
+	id, _ := this.Ctx.URLParamInt64("id")
+	model := this.Service.GetRowBy(id)
+	this.Ctx.ViewData("username", model.Username)
+	this.Ctx.View("user/edit.html")
+}
