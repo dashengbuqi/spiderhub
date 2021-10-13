@@ -7,12 +7,11 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/internal/crawler"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
 	"github.com/gocolly/colly/queue"
 	"github.com/robertkrimen/otto"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 	"net/url"
 	"sync"
@@ -20,7 +19,7 @@ import (
 )
 
 type Spider struct {
-	appId      primitive.ObjectID
+	appId      int64
 	method     int
 	container  *otto.Otto
 	outLog     chan<- []byte
@@ -35,10 +34,10 @@ type Spider struct {
 	failure    map[string]int
 	httpClient *http.Client
 	token      string
-	inst       *spiderhub_main.ApplicationImpl
+	inst       collect.ApplicationImp
 }
 
-func NewSpider(appId primitive.ObjectID, method int, rule map[string]interface{}, token string, vm *otto.Otto, lc chan<- []byte, dc chan<- map[string]interface{}) *Spider {
+func NewSpider(appId int64, method int, rule map[string]interface{}, token string, vm *otto.Otto, lc chan<- []byte, dc chan<- map[string]interface{}) *Spider {
 	return &Spider{
 		appId:     appId,
 		container: vm,
@@ -49,7 +48,7 @@ func NewSpider(appId primitive.ObjectID, method int, rule map[string]interface{}
 		tm:        time.Now().Unix(),
 		params:    rule,
 		failure:   make(map[string]int),
-		inst:      spiderhub_main.NewApplication(),
+		inst:      collect.NewApplication(),
 	}
 }
 
@@ -60,13 +59,13 @@ func (this *Spider) Run() {
 		if p != nil {
 			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
-		err := this.inst.ModifyStatus(this.appId, spiderhub_main.STATUS_NORMAL)
+		err := this.inst.ModifyStatus(this.appId, collect.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
 		this.outLog <- nil
 	}()
-	err := this.inst.ModifyStatus(this.appId, spiderhub_main.STATUS_RUNNING)
+	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
@@ -172,7 +171,7 @@ func (this *Spider) initTable() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		th := spiderhub_main.NewAppField()
+		th := collect.NewAppField()
 		err = th.Modify(common.TARGET_TYPE_CRAWLER, this.appId, itemStr)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)

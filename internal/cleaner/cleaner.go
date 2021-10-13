@@ -7,15 +7,15 @@ import (
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/internal/crawler"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/robertkrimen/otto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Cleaner struct {
-	appId     primitive.ObjectID
+	appId     int64
 	rules     map[string]interface{}
-	inst      *spiderhub_main.ApplicationImpl
+	inst      collect.ApplicationImp
 	method    int
 	token     string
 	container *otto.Otto
@@ -27,10 +27,10 @@ type Cleaner struct {
 	dataTable string
 }
 
-func NewCleaner(appId primitive.ObjectID, token string, dataTable string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
+func NewCleaner(appId int64, token string, dataTable string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
 	return &Cleaner{
 		appId:     appId,
-		inst:      spiderhub_main.NewApplication(),
+		inst:      collect.NewApplication(),
 		token:     token,
 		rules:     rule,
 		container: vm,
@@ -47,13 +47,13 @@ func (this *Cleaner) Run() {
 		if p != nil {
 			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
-		err := this.inst.ModifyStatus(this.appId, spiderhub_main.STATUS_NORMAL)
+		err := this.inst.ModifyStatus(this.appId, collect.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
 		this.outLog <- nil
 	}()
-	err := this.inst.ModifyStatus(this.appId, spiderhub_main.STATUS_RUNNING)
+	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
@@ -194,7 +194,7 @@ func (this *Cleaner) initTable() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		th := spiderhub_main.NewAppField()
+		th := collect.NewAppField()
 		err = th.Modify(common.TARGET_TYPE_CLEAN, this.appId, itemStr)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)

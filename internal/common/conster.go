@@ -1,7 +1,5 @@
 package common
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
-
 const (
 	EXEC_STATUS_FINISH  = 0
 	EXEC_STATUS_RUNNING = 1
@@ -71,15 +69,15 @@ type LogLevel struct {
 
 //通信数据
 type Communication struct {
-	Method     int                `json:"method"`
-	DebugId    int                `json:"debug_id"`
-	UserId     int                `json:"user_id"`
-	AppId      primitive.ObjectID `json:"app_id"`
-	Abort      bool               `json:"abort"`
-	Auto       bool               `json:"auto"`
-	CrawlField interface{}        `json:"crawl_field"`
-	Token      string             `json:"token"`
-	Content    string             `json:"content"`
+	Method     int         `json:"method"`
+	DebugId    int64       `json:"debug_id"`
+	UserId     int64       `json:"user_id"`
+	AppId      int64       `json:"app_id"`
+	Abort      bool        `json:"abort"`
+	Auto       bool        `json:"auto"`
+	CrawlField interface{} `json:"crawl_field"`
+	Token      string      `json:"token"`
+	Content    string      `json:"content"`
 }
 
 type FieldData struct {

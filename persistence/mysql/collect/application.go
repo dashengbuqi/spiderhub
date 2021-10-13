@@ -14,7 +14,7 @@ const (
 	METHOD_APPEND = 3
 )
 
-type CollectApplication struct {
+type Application struct {
 	Id             int64  `bson:"id"`
 	Title          string `bson:"title"`
 	UserId         int64  `bson:"user_id"`
@@ -31,15 +31,20 @@ type CollectApplication struct {
 	CreatedAt      int64  `bson:"created_at"`
 }
 
-func (this CollectApplication) TableName() string {
+func (this Application) TableName() string {
 	return "collect_app"
+}
+
+type ApplicationImp interface {
+	ModifyStatus(id int64, state int) error
+	GetRowByID(id int64) (*Application, error)
 }
 
 type application struct {
 	session *xorm.Engine
 }
 
-func NewApplication() *application {
+func NewApplication() ApplicationImp {
 	return &application{
 		session: mysql.Engine[mysql.DATABASE_SPIDERHUB],
 	}
@@ -47,14 +52,14 @@ func NewApplication() *application {
 
 //更新爬虫状态
 func (this *application) ModifyStatus(id int64, state int) error {
-	var item CollectApplication
+	var item Application
 	item.Status = state
 	_, err := this.session.Where("id=?", id).Cols("status").Update(item)
 	return err
 }
 
-func (this *application) GetRowByID(id int64) (*CollectApplication, error) {
-	var item *CollectApplication
+func (this *application) GetRowByID(id int64) (*Application, error) {
+	var item *Application
 	_, err := this.session.Where("id=?", id).Get(&item)
 	return item, err
 }

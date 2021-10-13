@@ -9,9 +9,8 @@ import (
 	"github.com/dashengbuqi/spiderhub/internal/crawler/spider"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/robertkrimen/otto"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"sync"
 	"time"
 )
@@ -23,7 +22,7 @@ type Schedule struct {
 	rabbitConn *queue.Base                 //rabbit链接
 	logQueue   *queue.Channel              //日志队列
 	dataQueue  *queue.Channel              //数据队列
-	bean       *spiderhub_main.Application //数据持久化实例
+	bean       *collect.Application        //数据持久化实例
 	container  *otto.Otto                  //JS规则识别容器
 	mainRule   *Application
 	dataTable  string
@@ -65,8 +64,8 @@ func NewSchedule(cc common.Communication) *Schedule {
 func (this *Schedule) Run() {
 	defer func() {
 		this.container.Call(FUNC_BEFORE_EXIT, nil)
-		sp := spiderhub_main.NewApplication()
-		err := sp.ModifyStatus(this.inData.AppId, spiderhub_main.STATUS_NORMAL)
+		sp := collect.NewApplication()
+		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -144,9 +143,9 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		this.outLog <- nil
 		return otto.Value{}
 	}
-	sc := spiderhub_main.NewApplication()
+	sc := collect.NewApplication()
 	this.bean, _ = sc.GetRowByID(this.inData.AppId)
-	if this.bean.Id == primitive.NilObjectID {
+	if this.bean.Id == 0 {
 		this.outLog <- helper.FmtLog(common.LOG_ERROR, "未找到应用数据,请先创建爬虫应用", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
@@ -159,7 +158,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			wg.Done()
 		}()
 		//非调试模式且数据存储方式是重新
-		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spiderhub_main.METHOD_INSERT {
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == collect.METHOD_INSERT {
 			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
@@ -195,7 +194,7 @@ func (this *Schedule) pushLog(body []byte, debug bool) error {
 	if err != nil {
 		return err
 	}
-	res["app_id"] = this.inData.AppId.String()
+	res["app_id"] = this.inData.AppId
 	obj := spiderhub_data.NewCrawlerLog(this.logTable)
 	if _, err := obj.Build(res); err != nil {
 		return err

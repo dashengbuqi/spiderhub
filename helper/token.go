@@ -4,15 +4,13 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"strconv"
 )
 
 type Token []byte
 
-func NewToken(user_id int, app_id primitive.ObjectID, debug_id int) Token {
+func NewToken(user_id int64, app_id int64, debug_id int64) Token {
 	var t string
-	t = fmt.Sprintf("%s%s%s", strconv.Itoa(user_id), app_id.String(), strconv.Itoa(debug_id))
+	t = fmt.Sprintf("%d%d%d", user_id, app_id, debug_id)
 	return []byte(t)
 }
 

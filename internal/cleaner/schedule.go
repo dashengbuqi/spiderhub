@@ -8,7 +8,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
-	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_main"
+	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/robertkrimen/otto"
 	"sync"
 	"time"
@@ -16,7 +16,7 @@ import (
 
 type Schedule struct {
 	inData       *common.Communication
-	bean         *spiderhub_main.Application
+	bean         *collect.Application
 	outLog       chan []byte
 	outData      chan map[string]interface{}
 	rabbitConn   *queue.Base
@@ -66,8 +66,8 @@ func NewSchedule(cc common.Communication) *Schedule {
 
 func (this *Schedule) Run() {
 	defer func() {
-		sp := spiderhub_main.NewApplication()
-		err := sp.ModifyStatus(this.inData.AppId, spiderhub_main.STATUS_NORMAL)
+		sp := collect.NewApplication()
+		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -130,7 +130,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
-	sp := spiderhub_main.NewApplication()
+	sp := collect.NewApplication()
 	this.bean, _ = sp.GetRowByID(this.inData.AppId)
 	var wg sync.WaitGroup
 
@@ -140,11 +140,11 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			CleanPool.Stop(key)
 			wg.Done()
 		}()
-		err := sp.ModifyStatus(this.inData.AppId, spiderhub_main.STATUS_RUNNING)
+		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_RUNNING)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == spiderhub_main.METHOD_INSERT {
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == collect.METHOD_INSERT {
 			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
