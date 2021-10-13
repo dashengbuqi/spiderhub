@@ -254,6 +254,7 @@ func (this *Menu) ModifyItem(id int64, item *SystemMenu) error {
 	var err error
 	if id == 0 {
 		item.Status = MENU_STATUS_ENABLE
+		item.CreatedAt = time.Now().Unix()
 		_, err = this.session.InsertOne(item)
 	} else {
 		item.UpdatedAt = time.Now().Unix()

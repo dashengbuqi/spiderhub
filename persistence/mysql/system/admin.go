@@ -7,6 +7,12 @@ import (
 	"github.com/dashengbuqi/spiderhub/middleware/mysql"
 	"github.com/go-xorm/xorm"
 	"strings"
+	"time"
+)
+
+const (
+	ADMIN_STATUS_DISABLE = 0
+	ADMIN_STATUS_ENABLE  = 1
 )
 
 type SystemAdmin struct {
@@ -73,6 +79,19 @@ func (this *Admin) PostMenuList(req *helper.RequestParams) string {
 	query = this.session.Table(new(SystemAdmin)).Where(where)
 	result := this.assembleTable(query, req)
 	return result.ToJson()
+}
+
+func (this *Admin) ModifyItem(id int64, item *SystemAdmin) error {
+	var err error
+	if id == 0 {
+		item.Status = ADMIN_STATUS_ENABLE
+		item.CreatedAt = time.Now().Unix()
+		_, err = this.session.InsertOne(item)
+	} else {
+		item.UpdatedAt = time.Now().Unix()
+		_, err = this.session.Where("id=?", id).Cols("username", "mobile", "email", "auth_key", "type", "icon", "sort", "updated_at").Update(item)
+	}
+	return err
 }
 
 func (this *Admin) assembleTable(query *xorm.Session, req *helper.RequestParams) *helper.ResultEasyUItem {

@@ -37,5 +37,18 @@ func (this *UserController) GetEdit() {
 	id, _ := this.Ctx.URLParamInt64("id")
 	model := this.Service.GetRowBy(id)
 	this.Ctx.ViewData("username", model.Username)
+	this.Ctx.ViewData("email", model.Email)
+	this.Ctx.ViewData("mobile", model.Mobile)
+	this.Ctx.ViewData("id", model.Id)
 	this.Ctx.View("user/edit.html")
+}
+
+func (this *UserController) PostEdit() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	form := this.Ctx.FormValues()
+	err := this.Service.ModifyMenuItem(id, form)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("操作成功", nil)
 }
