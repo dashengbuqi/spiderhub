@@ -236,6 +236,11 @@ input.text:hover,input.text:focus{ border:#29a9da solid 1px; background-color:#e
 .cbtn0{ display:inline-block; padding:0px 10px 0px 10px; color:#666666; position:relative; background:url(../images/cbtn.jpg) repeat-x; height:28px; line-height:28px; border-radius:3px; border:#d1cece 1px solid;}
 .cbtn{ display:inline-block; /*padding:0px 30px;*/width: 82px;  text-align: center; position:relative; height:30px; line-height:30px; background: #055197;    color: #fff;}
 .cbtn em{ display:inline-block; position:absolute; left:5px ;top:7px; width:12px; height:12px; z-index:999;}
+.btn-pink{
+    display:inline-block; width: 82px;  text-align: center; position:relative; height:30px; line-height:30px; background-color: #d6487e !important;
+    border-color: #d6487e;    color: #fff;
+}
+.btn-pink em{ display:inline-block; position:absolute; left:5px ;top:7px; width:12px; height:12px; z-index:999;}
 .add em{ background:url(../images/add.png) center center no-repeat;}
 .delete em{ background:url(../images/delete.png) center center no-repeat;}
 .export em{ background:url(../images/export.png) center center no-repeat;}
