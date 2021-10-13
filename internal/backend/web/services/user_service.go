@@ -1,7 +1,7 @@
 package services
 
 import (
-	"fmt"
+	"errors"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/system"
 )
@@ -10,6 +10,7 @@ type UserService interface {
 	GetRowBy(id int64) *system.SystemAdmin
 	ModifyMenuItem(id int64, form map[string][]string) error
 	GetUserList(post *helper.RequestParams) string
+	RemoveUser(id int64) error
 }
 
 type userService struct {
@@ -37,18 +38,12 @@ func (this *userService) ModifyMenuItem(id int64, form map[string][]string) erro
 	if _, ok := form["password"]; ok {
 		password = form["password"][0]
 	}
-
-	fmt.Println(username, mobile, email, password)
-	return nil
-	/*return this.repo.ModifyItem(id, &system.SystemMenu{
-		TaskName: task_name,
-		FullName: full_name,
-		Path:     path,
-		Icon:     icon,
-		Sort:     sort,
-		Type:     tp,
-		ParentId: int64(parent_id),
-	})*/
+	return this.repo.ModifyItem(id, &system.SystemAdmin{
+		Username: username,
+		Mobile:   mobile,
+		Email:    email,
+		Pwd:      password,
+	})
 }
 
 func (this *userService) GetUserList(post *helper.RequestParams) string {
@@ -59,4 +54,11 @@ func (this *userService) GetUserList(post *helper.RequestParams) string {
 func (this *userService) GetRowBy(id int64) *system.SystemAdmin {
 	result, _ := this.repo.GetRowBy(id)
 	return result
+}
+
+func (this *userService) RemoveUser(id int64) error {
+	if id == 0 {
+		return errors.New("暂不支持")
+	}
+	return this.repo.RemoveItem(id)
 }

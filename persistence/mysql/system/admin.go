@@ -1,6 +1,9 @@
 package system
 
 import (
+	"crypto/md5"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
@@ -18,10 +21,10 @@ const (
 type SystemAdmin struct {
 	Id         int64  `json:"id"`
 	Username   string `json:"username"`
-	RealName   string `json:"real_name"`
 	Mobile     string `json:"mobile"`
 	AuthKey    string `json:"auth_key"`
 	Password   string `json:"password" xorm:"password_hash"`
+	Pwd        string `json:"pwd" xorm:"-"`
 	Email      string `json:"email"`
 	Status     int    `json:"status"`
 	LoginTimes int64  `json:"login_times"`
@@ -42,7 +45,6 @@ func NewAdmin() *Admin {
 type SystemAdminBackend struct {
 	Id          int64  `json:"id"`
 	Username    string `json:"username"`
-	RealName    string `json:"real_name"`
 	Mobile      string `json:"mobile"`
 	Email       string `json:"email"`
 	Status      int    `json:"status"`
@@ -84,14 +86,37 @@ func (this *Admin) PostMenuList(req *helper.RequestParams) string {
 func (this *Admin) ModifyItem(id int64, item *SystemAdmin) error {
 	var err error
 	if id == 0 {
+		if len(item.Username) == 0 {
+			return errors.New("用户名不能为空")
+		}
+		if len(item.Pwd) == 0 {
+			return errors.New("密码不能为空")
+		}
+		item.AuthKey, item.Password = this.generatePassword(item.Pwd)
 		item.Status = ADMIN_STATUS_ENABLE
 		item.CreatedAt = time.Now().Unix()
 		_, err = this.session.InsertOne(item)
 	} else {
 		item.UpdatedAt = time.Now().Unix()
-		_, err = this.session.Where("id=?", id).Cols("username", "mobile", "email", "auth_key", "type", "icon", "sort", "updated_at").Update(item)
+		cols := []string{
+			"mobile", "email", "updated_at",
+		}
+		if len(item.Pwd) > 0 {
+			cols = append(cols, "auth_key", "password_hash")
+			item.AuthKey, item.Password = this.generatePassword(item.Pwd)
+		}
+		_, err = this.session.Where("id=?", id).Cols(cols...).Update(item)
 	}
 	return err
+}
+
+//生成密码
+func (this *Admin) generatePassword(pwd string) (string, string) {
+	salt := helper.RandString(6)
+	m5 := md5.New()
+	m5.Write([]byte(pwd))
+	m5.Write([]byte(salt))
+	return salt, hex.EncodeToString(m5.Sum(nil))
 }
 
 func (this *Admin) assembleTable(query *xorm.Session, req *helper.RequestParams) *helper.ResultEasyUItem {
@@ -125,4 +150,9 @@ func (this *Admin) assembleTable(query *xorm.Session, req *helper.RequestParams)
 		Pages:  pages,
 		Models: items,
 	}
+}
+
+func (this *Admin) RemoveItem(id int64) error {
+	_, err := this.session.Where("id=?", id).Delete(new(SystemAdmin))
+	return err
 }

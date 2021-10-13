@@ -52,3 +52,12 @@ func (this *UserController) PostEdit() string {
 	}
 	return helper.ResultSuccess("操作成功", nil)
 }
+
+func (this *UserController) GetRemove() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	err := this.Service.RemoveUser(id)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("操作成功", nil)
+}

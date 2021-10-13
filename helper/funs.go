@@ -7,10 +7,19 @@ import (
 	"fmt"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/robertkrimen/otto"
+	"math/rand"
 	"net/url"
 	"strings"
 	"time"
 )
+
+var (
+	r *rand.Rand
+)
+
+func init() {
+	r = rand.New(rand.NewSource(time.Now().Unix()))
+}
 
 //格式化输出日志
 func FmtLog(title, content string, level, tp int) []byte {
@@ -71,8 +80,12 @@ func FmtDateTime(t int64) string {
 		return "昨天" + "" + hm
 	} else {
 		if diff <= day {
-			res := time.Unix(t, 0).Format("15:04")
-			return res
+			if diff <= 300 {
+				return "刚刚"
+			} else if diff < 3600 {
+				return fmt.Sprintf("%d 分钟前", diff/60)
+			}
+			return fmt.Sprintf("%d 小时前", diff/3600)
 		} else if diff <= week {
 			wd := time.Unix(t, 0).Weekday().String()
 			hm := time.Unix(t, 0).Format("15:04")
@@ -82,4 +95,13 @@ func FmtDateTime(t int64) string {
 			return res
 		}
 	}
+}
+
+func RandString(len int) string {
+	bytes := make([]byte, len)
+	for i := 0; i < len; i++ {
+		b := r.Intn(26) + 65
+		bytes[i] = byte(b)
+	}
+	return string(bytes)
 }
