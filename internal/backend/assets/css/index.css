@@ -1,0 +1,250 @@
+/**
+  index.css
+  Create on 2019/10/25 0025 14:19
+  Description: ...
+  Create by ZT
+**/
+* {margin:0; padding:0;}
+* html body {
+    overflow:visible;
+}
+* html iframe, * html frame {overflow:auto;}
+* html frameset {overflow:hidden;}
+body, ul, ol, li, p, h1, h2, h3, h4, h5, h6, form, fieldset, table, td, img, div, tr {margin:0 auto; padding:0;box-sizing: border-box}
+input, select {font-size:12px; vertical-align:middle;}
+textarea, input {word-wrap:break-word; word-break:break-all; padding:0;}
+a,input,select,textarea{outline: none; resize: none;}
+li {list-style-type:none;}
+img {border:0 none;}
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,button,textarea,p,blockquote,th,td {
+    margin:0; padding:0;
+}
+html,body{
+    width: 100%;
+    height: 100%;
+    color: #333333;
+    min-width:@minWidth;
+    font-family:'DIN-MEDIUM',"Microsoft YaHei", "微软雅黑", sans-serif, Helvetica, Arial;
+}
+td,th,caption {
+    font-size: 12px;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-weight:normal;
+    font-size:100%;
+}
+img{
+    vertical-align: middle;
+}
+body{
+      background-color: #272822;
+    overflow: hidden;
+}
+.clearfix{
+    *zoom: 1;
+}
+.clearfix:after,.clearfix:before{
+    content: ".";
+    display: block;
+    height:0;
+    clear:both;
+    visibility: hidden;
+}
+
+.left{
+ float: left;
+}
+.right{
+   float: right;
+}
+.editor .editor-scrollBar{
+    height: 25px;
+}
+.editor .editor-scrollBar li{
+    float: left;
+    margin-right: 5px;
+}
+.btn{
+    display: inline-block;
+    color: white;
+    background-color: #272822;
+    font-size: 12px;
+    cursor: pointer;
+    margin-right: 5px;
+    height: 22px;
+    padding: 0 8px;
+    line-height: 22px;
+}
+.editor-toolbar{
+    height: 26px;
+    background-color: #32322f;
+    position: absolute;
+    z-index: 4;
+    width: 100%;
+}
+.editor-content{
+    height: 100%;
+}
+select{
+    width: 100px;
+    /* padding: 4px 2px; */
+    height: 25px;
+    background-color: #272822;
+    font-size: 12px;
+    color: white;
+    border: none;
+    margin-right: 5px;
+    vertical-align: bottom;
+}
+.btn,select{
+    border: 1px solid #12130c;
+}
+.editor-left{
+    width: 70%;
+}
+.editor-right{
+    width: 30%;
+}
+.editor-result{
+    height: 100%;
+    padding: 30px 20px;
+    color: white;
+    font-size: 12px;
+}
+.editor-left{
+    border-right: 4px solid #6e6e6e;
+}
+.editor-right-top{
+    border-bottom: 4px solid #6e6e6e;
+}
+.editor,.editor-left,.editor-right{
+    height: 100%;
+    position: relative;
+}
+.editor-right-top{
+    height: 500px;
+    width: 100%;
+    color:white;
+    position: relative;
+}
+.editor-right-top .editor-toolbar li span{
+    color: white;
+    display: inline-block;
+    height: 20px;
+    font-size: 12px;
+    line-height: 20px;
+}
+.editor-toolbar li a i{
+    margin-right: 3px;
+}
+.editor-right-top .editor-toolbar ul{
+
+}
+.editor-toolbar li{
+    float: left;
+}
+.btn:hover{
+    color: #ec971f;
+}
+.bug-btn{
+    height: 22px;
+    padding: 0 8px;
+    line-height: 22px;
+}
+.bug-btn:hover{
+    background-color: white;
+    color: #ec971f;
+    border: 1px solid white;
+}
+.status-stop{
+    color: red!important;
+}
+.status-pause,.status-run{
+    color: green!important;
+}
+.status-pause{
+    color: springgreen!important;
+}
+.editor-splitter{
+    position: absolute;
+    overflow: auto;
+    background-color: grey;
+    cursor: col-resize;
+    z-index: 900;
+    width: 4px;
+    height: 100%;
+}
+.jqx-widget-content{
+    background-color: #272822!important;
+}
+.CodeMirror{
+    font-size : 15px;
+    line-height : 150%;
+    width: 100%;
+    background: #272822;
+    height: 100%;
+    color: #f8f8f2;
+    padding-top: 27px;
+}
+.panel-header, .panel-body{
+    border-color: #000000;
+}
+.status_3,.status_1{
+    color:green;
+}
+.circle{
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.editor-result{
+    overflow-y: scroll;
+}
+.status_-1{
+    color:red;
+}
+.status_0{
+    color:darkseagreen;
+}
+.status_2{
+    color:yellow;
+}
+.waite{
+    width: 2px;
+    height: 2px;
+    display: inline-block;
+    background-color: white;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin: 10px 2px;
+}
+.logs{
+    line-height: 18px;
+    margin: 5px 0;
+    position: relative;
+}
+.logs span{
+    width: 100%;
+    display: inline-block;
+    margin-left: 20px;
+    word-break: break-all;
+}
+.logs i{
+    margin-right: 6px;
+    position: absolute;
+    top: 3px;
+}
+.log_1{
+    color:#99dcf3;
+}
+.log_2{
+    color:white;
+}
+.log_3{
+    color:#ff9900;
+}
+.log_4{
+    color:red;
+}
