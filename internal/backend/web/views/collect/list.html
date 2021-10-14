@@ -1,0 +1,80 @@
+<div id="mainPanel" region="center" style="margin-left: 3px;">
+    <div class="total">
+        <div class="Handel cf">
+            <a href="javascript:void(0)" onclick="add()" class="cbtn add fr">新增</a>
+        </div>
+    </div>
+    <form id="datagridForm" method="post">
+        <table id="datagrid"></table>
+    </form>
+</div>
+<script type="text/javascript">
+    // 显示用户自定义搜索条件的标识符，true为显示
+    var needShowUserCondition = true;
+    var dataUrl = "/collect/list";
+    $(function() {
+        $('#datagrid').datagrid({
+            width : getDatagridWidth(),
+            height : getDatagridHeight(),
+            fitColumns : true,
+            nowrap : true,
+            autoRowHeight : false,
+            striped : true,
+            collapsible : true,
+            pagination : true,
+            url : dataUrl,
+            type : "post",
+            rownumbers : true,
+            idField : 'id',
+            checkOnSelect : false,
+            selectOnCheck : false,
+            singleSelect : true,
+            sortName:'id',
+            sortOrder:'desc',
+            onLoadSuccess : dataGridOnLoadSuccess,
+            columns : [
+                [
+                    {title : '任务名称',field : 'title',width : $(this).width() * 0.1,align : 'left',halign:'center'},
+                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.1,align : 'left',halign:'center'},
+                    {title : '抓取方式',field : 'method',width : $(this).width() * 0.05,align : 'left',halign:'center'},
+                    {title : '错误信息',field : 'error_info',width : $(this).width() * 0.1,align : 'left',halign:'center'},
+                    {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
+                        formatter:function (value,rec) {
+                            return '<span class="color_'+rec.status+'">'+value+'</span>';
+                        }},
+                    {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.15,align : 'left',halign:'center'},
+                    {title : '操作',field : 'opt',width : $(this).width() * 0.2,align : 'center',halign:'center',
+                        formatter : function(value, rec) {
+                            var str = "";
+                            str += '<a href="javascript:void(0)" onclick="update(' + rec.id +');">修改</a> ';
+                            str += '<a href="javascript:void(0)" onclick="del(' + rec.id + ');">删除</a> ';
+                            return str;
+                        }
+                    }
+                ]
+            ]
+        });
+    });
+
+    function add() {
+        showMyWindow("新增","/collect/edit",false,550,450);
+    }
+
+    function update(id) {
+        showMyWindow("修改","/collect/edit?id="+id,false,550,450);
+    }
+    /*
+    * 用户删除
+    */
+    function del(id) {
+        custom_confirm_ajax("操作提示","此操作不可逆，确认删除？","/collect/remove?id="+id,"get");
+    }
+</script>
+<style>
+    .color_0{
+        color:red;
+    }
+    .color_1{
+        color:green;
+    }
+</style>

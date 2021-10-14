@@ -4,26 +4,34 @@ import (
 	"encoding/json"
 )
 
+type ResultEUINode struct {
+	Rows  interface{} `json:"rows"`
+	Total int64       `json:"total"`
+}
+
 type ResultEasyUItem struct {
 	Pages   *Pagination
 	Models  interface{}
-	_result map[string]interface{}
+	_result *ResultEUINode
 }
 
 func (this *ResultEasyUItem) process() {
-	this._result = map[string]interface{}{
-		"rows":  this.Models,
-		"total": this.Pages.GetTotal(),
+	this._result = &ResultEUINode{
+		Rows:  this.Models,
+		Total: this.Pages.GetTotal(),
 	}
 }
 
 func (this *ResultEasyUItem) ToJson() string {
 	this.process()
+	if this._result.Total == 0 {
+		this._result.Rows = []string{}
+	}
 	bt, _ := json.Marshal(this._result)
 	return string(bt)
 }
 
-func (this *ResultEasyUItem) ToMap() map[string]interface{} {
+func (this *ResultEasyUItem) ToMap() *ResultEUINode {
 	this.process()
 	return this._result
 }

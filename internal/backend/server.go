@@ -25,6 +25,8 @@ func Run() {
 	tmpl := iris.HTML(base+"/web/views", ".html").Layout("layout/main.html").Reload(params["Reload"].(bool))
 	app.RegisterView(tmpl)
 	app.HandleDir("/static", base+"/assets")
+	//登录
+	mvc.Configure(app.Party("/login"), login)
 	//默认
 	mvc.Configure(app.Party("/"), index)
 	//框架
@@ -33,8 +35,8 @@ func Run() {
 	mvc.Configure(app.Party("/menu"), menu)
 	//用户管理
 	mvc.Configure(app.Party("/user"), user)
-	//登录
-	mvc.Configure(app.Party("/login"), login)
+	//采集
+	mvc.Configure(app.Party("/collect"), collect)
 
 	err = app.Run(iris.Addr(params["Addr"].(string)), iris.WithConfiguration(
 		iris.Configuration{
@@ -56,6 +58,12 @@ func index(app *mvc.Application) {
 	menuService := services.NewMenuService()
 	app.Register(menuService)
 	app.Handle(new(controllers.DefaultController))
+}
+
+func collect(app *mvc.Application) {
+	cs := services.NewCollectService()
+	app.Register(cs)
+	app.Handle(new(controllers.CollectController))
 }
 
 func menu(app *mvc.Application) {

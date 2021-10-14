@@ -9,44 +9,47 @@ var detailview = $.extend({}, $.fn.datagrid.defaults.view, {
 		}
 
 		var rows = state.data.rows;
+		console.log(rows);
 		var fields = $(target).datagrid('getColumnFields', frozen);
 		var table = [];
 		table.push('<table class="datagrid-btable" cellspacing="0" cellpadding="0" border="0"><tbody>');
-		for(var i=0; i<rows.length; i++) {
-			// get the class and style attributes for this row
-			var css = opts.rowStyler ? opts.rowStyler.call(target, i, rows[i]) : '';
-			var classValue = '';
-			var styleValue = '';
-			if (typeof css == 'string'){
-				styleValue = css;
-			} else if (css){
-				classValue = css['class'] || '';
-				styleValue = css['style'] || '';
-			}
+		if (rows != null) {
+			for(var i=0; i<rows.length; i++) {
+				// get the class and style attributes for this row
+				var css = opts.rowStyler ? opts.rowStyler.call(target, i, rows[i]) : '';
+				var classValue = '';
+				var styleValue = '';
+				if (typeof css == 'string'){
+					styleValue = css;
+				} else if (css){
+					classValue = css['class'] || '';
+					styleValue = css['style'] || '';
+				}
 
-			var cls = 'class="datagrid-row ' + (i % 2 && opts.striped ? 'datagrid-row-alt ' : ' ') + classValue + '"';
-			var style = styleValue ? 'style="' + styleValue + '"' : '';
-			var rowId = state.rowIdPrefix + '-' + (frozen?1:2) + '-' + i;
-			table.push('<tr id="' + rowId + '" datagrid-row-index="' + i + '" ' + cls + ' ' + style + '>');
-			table.push(this.renderRow.call(this, target, fields, frozen, i, rows[i]));
-			table.push('</tr>');
+				var cls = 'class="datagrid-row ' + (i % 2 && opts.striped ? 'datagrid-row-alt ' : ' ') + classValue + '"';
+				var style = styleValue ? 'style="' + styleValue + '"' : '';
+				var rowId = state.rowIdPrefix + '-' + (frozen?1:2) + '-' + i;
+				table.push('<tr id="' + rowId + '" datagrid-row-index="' + i + '" ' + cls + ' ' + style + '>');
+				table.push(this.renderRow.call(this, target, fields, frozen, i, rows[i]));
+				table.push('</tr>');
 
-			table.push('<tr style="display:none;">');
-			if (frozen){
-				table.push('<td colspan=' + (fields.length+2) + ' style="border-right:0">');
-			} else {
-				table.push('<td colspan=' + (fields.length) + '>');
-			}
-			table.push('<div class="datagrid-row-detail">');
-			if (frozen){
-				table.push('&nbsp;');
-			} else {
-				table.push(opts.detailFormatter.call(target, i, rows[i]));
-			}
-			table.push('</div>');
-			table.push('</td>');
-			table.push('</tr>');
+				table.push('<tr style="display:none;">');
+				if (frozen){
+					table.push('<td colspan=' + (fields.length+2) + ' style="border-right:0">');
+				} else {
+					table.push('<td colspan=' + (fields.length) + '>');
+				}
+				table.push('<div class="datagrid-row-detail">');
+				if (frozen){
+					table.push('&nbsp;');
+				} else {
+					table.push(opts.detailFormatter.call(target, i, rows[i]));
+				}
+				table.push('</div>');
+				table.push('</td>');
+				table.push('</tr>');
 
+			}
 		}
 		table.push('</tbody></table>');
 

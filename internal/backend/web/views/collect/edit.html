@@ -1,0 +1,39 @@
+<div class="edit_con autoWidth">
+    <div class="edit_arcontent">
+        <form id="form" method="post">
+            <table class="table-page">
+                <tr>
+                    <th>任务名称：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="title" value="{{.title}}" style="width:170px;"  validType="length[2,16]" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>定时任务：</th>
+                    <td>
+                        <input class="easyui-validatebox text" name="mobile" value="{{.schedule}}" style="width:170px;"  validType="mobileGroup" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>附件存储：</th>
+                    <td>
+                        {{ template "includes/widgets/combox.html" .storages}}
+                    </td>
+                </tr>
+                <tr>
+                    <th>抓取方式：</th>
+                    <td>
+                        {{ template "includes/widgets/combox.html" .methods}}
+                    </td>
+                </tr>
+            </table>
+        </form>
+    </div>
+</div>
+<script type="text/javascript">
+    function dialogSave() {
+        $('#form').custom_form({
+            url:"/collect/edit?id={{.id}}",
+        });
+    }
+</script>
