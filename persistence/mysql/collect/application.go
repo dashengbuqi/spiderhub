@@ -1,12 +1,15 @@
 package collect
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/middleware/mysql"
 	"github.com/go-xorm/xorm"
 	"strings"
+	"time"
 )
 
 const (
@@ -16,6 +19,10 @@ const (
 	METHOD_INSERT = 1
 	METHOD_UPDATE = 2
 	METHOD_APPEND = 3
+
+	STORAGE_NORMAL = 0
+	STORAGE_SERVER = 1
+	STORAGE_PAN    = 2
 )
 
 var (
@@ -27,6 +34,11 @@ var (
 		METHOD_INSERT: "重新抓取",
 		METHOD_UPDATE: "更新",
 		METHOD_APPEND: "追加",
+	}
+	storageArr = map[int]string{
+		STORAGE_NORMAL: "",
+		STORAGE_SERVER: "服务器",
+		STORAGE_PAN:    "云盘",
 	}
 )
 
@@ -49,7 +61,7 @@ type Application struct {
 	UpdatedAt      int64  `json:"updated_at"`
 	UiUpdatedAt    string `json:"ui_updated_at" xorm:"-"`
 	CreatedAt      int64  `json:"created_at"`
-	UiCreatedAt    string `json:"ui_created_at"`
+	UiCreatedAt    string `json:"ui_created_at" xorm:"-"`
 }
 
 func (this Application) TableName() string {
@@ -61,12 +73,58 @@ func (this *Application) callUI() {
 	this.UiCreatedAt = helper.FmtDateTime(this.CreatedAt)
 	this.UiStatus = statusArr[this.Status]
 	this.UiMethod = methodArr[this.Method]
+	this.UiStorage = storageArr[this.Storage]
+}
+
+func (this *Application) GetStorageComboList() string {
+	items := []helper.ComboData{
+		{
+			Id:   STORAGE_NORMAL,
+			Text: "请选择附件存储",
+		},
+		{
+			Id:   STORAGE_SERVER,
+			Text: "服务器",
+		},
+		{
+			Id:   STORAGE_PAN,
+			Text: "云盘",
+		},
+	}
+	result, _ := json.Marshal(items)
+	return string(result)
+}
+
+func (this *Application) GetMethodComboList() string {
+	items := []helper.ComboData{
+		{
+			Id:   0,
+			Text: "请选择数据存储",
+		},
+		{
+			Id:   METHOD_INSERT,
+			Text: "重新抓取",
+		},
+		{
+			Id:   METHOD_UPDATE,
+			Text: "数据更新",
+		},
+		{
+			Id:   METHOD_APPEND,
+			Text: "追加数据",
+		},
+	}
+	result, _ := json.Marshal(items)
+	return string(result)
 }
 
 type ApplicationImp interface {
 	ModifyStatus(id int64, state int) error
 	GetRowByID(id int64) (*Application, error)
 	PostList(req *helper.RequestParams) string
+	ModifyItem(id int64, item *Application) error
+	Remove(id int64) error
+	ModifyCrawlerContent(id int64, content string) error
 }
 
 type application struct {
@@ -88,9 +146,9 @@ func (this *application) ModifyStatus(id int64, state int) error {
 }
 
 func (this *application) GetRowByID(id int64) (*Application, error) {
-	var item *Application
+	var item Application
 	_, err := this.session.Where("id=?", id).Get(&item)
-	return item, err
+	return &item, err
 }
 
 func (this *application) PostList(req *helper.RequestParams) string {
@@ -139,4 +197,39 @@ func (this *application) assembleTable(query *xorm.Session, req *helper.RequestP
 		Pages:  pages,
 		Models: items,
 	}
+}
+func (this *application) ModifyItem(id int64, item *Application) error {
+	var err error
+	if id == 0 {
+		if len(item.Title) == 0 {
+			return errors.New("任务名称不能为空")
+		}
+		if item.Method == 0 {
+			return errors.New("请选择数据存储方式")
+		}
+		item.UserId = 0
+		item.Status = STATUS_NORMAL
+		item.CreatedAt = time.Now().Unix()
+		_, err = this.session.InsertOne(item)
+	} else {
+		item.UpdatedAt = time.Now().Unix()
+		cols := []string{
+			"title", "schedule", "storage", "method", "updated_at",
+		}
+		_, err = this.session.Where("id=?", id).Cols(cols...).Update(item)
+	}
+	return err
+}
+
+func (this *application) Remove(id int64) error {
+	_, err := this.session.Where("id=?", id).Delete(new(Application))
+	return err
+}
+
+func (this *application) ModifyCrawlerContent(id int64, content string) error {
+	var item Application
+	item.CrawlerContent = content
+	item.UpdatedAt = time.Now().Unix()
+	_, err := this.session.Where("id =?", id).Cols("crawler_content", "updated_at").Update(item)
+	return err
 }

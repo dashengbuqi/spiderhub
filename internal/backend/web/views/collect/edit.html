@@ -11,7 +11,7 @@
                 <tr>
                     <th>定时任务：</th>
                     <td>
-                        <input class="easyui-validatebox text" name="mobile" value="{{.schedule}}" style="width:170px;"  validType="mobileGroup" />
+                        <input class="easyui-validatebox text" name="schedule" value="{{.schedule}}" style="width:170px;" />
                     </td>
                 </tr>
                 <tr>
@@ -21,7 +21,7 @@
                     </td>
                 </tr>
                 <tr>
-                    <th>抓取方式：</th>
+                    <th>数据存储：</th>
                     <td>
                         {{ template "includes/widgets/combox.html" .methods}}
                     </td>

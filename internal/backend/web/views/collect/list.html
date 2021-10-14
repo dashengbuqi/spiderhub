@@ -34,19 +34,22 @@
             onLoadSuccess : dataGridOnLoadSuccess,
             columns : [
                 [
-                    {title : '任务名称',field : 'title',width : $(this).width() * 0.1,align : 'left',halign:'center'},
-                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.1,align : 'left',halign:'center'},
-                    {title : '抓取方式',field : 'method',width : $(this).width() * 0.05,align : 'left',halign:'center'},
-                    {title : '错误信息',field : 'error_info',width : $(this).width() * 0.1,align : 'left',halign:'center'},
+                    {title : '任务名称',field : 'title',width : $(this).width() * 0.12,align : 'center',halign:'center'},
+                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '数据',field : 'ui_method',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '附件',field : 'ui_storage',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '错误信息',field : 'error_info',width : $(this).width() * 0.1,align : 'center',halign:'center'},
                     {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
                         formatter:function (value,rec) {
                             return '<span class="color_'+rec.status+'">'+value+'</span>';
                         }},
-                    {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.15,align : 'left',halign:'center'},
-                    {title : '操作',field : 'opt',width : $(this).width() * 0.2,align : 'center',halign:'center',
+                    {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '操作',field : 'opt',width : $(this).width() * 0.12,align : 'center',halign:'center',
                         formatter : function(value, rec) {
                             var str = "";
-                            str += '<a href="javascript:void(0)" onclick="update(' + rec.id +');">修改</a> ';
+                            str += '<a href="javascript:void(0)" onclick="crawler(' + rec.id +');">采集</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="clean(' + rec.id +');">清洗</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="update(' + rec.id +');">修改</a>&nbsp;&nbsp;';
                             str += '<a href="javascript:void(0)" onclick="del(' + rec.id + ');">删除</a> ';
                             return str;
                         }
@@ -55,6 +58,9 @@
             ]
         });
     });
+    function crawler(id) {
+        addTab("数据采集","/collect/debug?id="+id)
+    }
 
     function add() {
         showMyWindow("新增","/collect/edit",false,550,450);
@@ -72,7 +78,7 @@
 </script>
 <style>
     .color_0{
-        color:red;
+        color:blue;
     }
     .color_1{
         color:green;
