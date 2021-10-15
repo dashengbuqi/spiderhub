@@ -11,7 +11,6 @@
             save:$('#save-code'), //保存代码
             font:$('#font-code'), //更换字体的大小
             logErrorType:$('#log-error-type'), //错误类型
-            proxySelect:$('#proxy-select'),  //代理方式
             clearResult:$('#clear-result'),//清空结果
              resultArea:$('#result-area'), //结果区
              logArea:$('#log-area'),//日志区
@@ -35,14 +34,14 @@
         var data ={};
         this.run = function () {
             $.ajax({
-                type: 'post',
+                type: 'POST',
                 dataType: 'json',
-                url: '/crawler/api/debug-start?app_id='+app_id,
+                url: '/collect/begin?id='+app_id,
                 data: target._getParams(),
-                success: function (data) {
-                    if(data.status==1){
-                        test_id  = data.data.id;
-                        $(params.logArea).append('<p>爬虫开始</p>');
+                success: function (res) {
+                    if(res.status==1){
+                        test_id  = res.data.debug_id;
+                        $(params.logArea).append('<p>开始采集数据</p>');
                         caches.logs.push('<p>.........</p>');
                         target.getLogs();
                         $(params.status).removeClass().addClass('status-run').html('正在爬取');
@@ -51,7 +50,7 @@
                         $(opeateParams.pause).show();
                         $(opeateParams.stop).show();
                     }else{
-                        art.dialog({title:'提示',time:3, content:data.msg});
+                        art.dialog({title:'提示',time:3, content:res.msg});
                     }
                 }
             })
@@ -78,20 +77,20 @@
         this.stop = function (){
             $(params.status).removeClass().addClass('status-stop').html('爬虫停止中....');
             $.ajax({
-                type: 'post',
+                type: 'put',
                 dataType: 'json',
-                url: '/crawler/api/debug-end?app_id='+app_id+'&test_id='+test_id,
-                data: target._getParams(),
+                async:false,
+                url: '/collect/end?id='+app_id+'&debug_id='+test_id,
+                //data: target._getParams(),
                 success: function (data) {
                     if(data.status==1){
                       //  clearInterval(_INTERVAL);
                         $(params.logArea).append('<p>已经点击停止等待系统停止.....</p>');
-                     //   $(params.status).removeClass().addClass('status-stop').html('停止爬取');
-                     //   $(opeateParams.stop).hide();
-                     //   $(opeateParams.run).show();
-                      //  $(opeateParams.proxy).show();
-                      //  $(opeateParams.pause).hide();
-                     //   $(opeateParams.go).hide();
+                        $(params.status).removeClass().addClass('status-stop').html('完成');
+                        $(opeateParams.stop).hide();
+                        $(opeateParams.run).show();
+                        $(opeateParams.pause).hide();
+                        $(opeateParams.go).hide();
                     }else{
                         art.dialog({title:'提示',time:3, content:data.msg});
                     }
@@ -119,7 +118,7 @@
             for(var i in allData){
                 var row = JSON.parse(allData[i]);
                 allMessage.push(row);
-                if(row['log_type']==5){
+                if(row['type']==5){
                     clearInterval(_INTERVAL);
                     $(params.logArea).append('<p>系统已经停止.....</p>');
                     $(params.status).removeClass().addClass('status-stop').html('爬虫已经停止');
@@ -129,7 +128,7 @@
                       $(opeateParams.pause).hide();
                        $(opeateParams.go).hide();
                 }
-                str+='<p class="logs '+row['log_type']+'   '+row['log_level']+'"><i class="circle log-type_'+row['log_type']+'"></i><span class="log-error-type_'+row['log_level']+'">'+row['title']+':'+row['content']+'</span></p>';
+                str+='<p class="logs '+row['type']+'   '+row['level']+'"><i class="circle log-type_'+row['type']+'"></i><span class="log-error-type_'+row['level']+'">'+row['title']+':'+row['content']+'</span></p>';
             }
             $(params.logArea).append(str);
             $(params.logArea)[0].scrollTop =  $(params.logArea)[0].scrollHeight;
@@ -137,7 +136,7 @@
         this.renderResult = function (data) {
                  var str ='';
                   for(var i in data){
-                      str+='<div class="row">结果'+i+':&nbsp;&nbsp;'+data[i]+'</div>';
+                      str+='<p class="row">'+data[i]+'</p>';
                   }
                   $(params.resultArea).append(str);
             $(params.resultArea)[0].scrollTop =  $(params.resultArea)[0].scrollHeight;
@@ -145,14 +144,14 @@
         this.getLogs = function () {
             _INTERVAL = setInterval(function () {
                 $.ajax({
-                    type: 'post',
+                    type: 'get',
                     dataType: 'json',
-                    url: '/crawler/api/debug-heart-beat?app_id='+app_id+'&test_id='+test_id,
-                    data: target._getParams(),
-                    success: function (data) {
+                    url: '/collect/heart?id='+app_id+'&debug_id='+test_id,
+                   // data: target._getParams(),
+                    success: function (res) {
                         var str ='';
-                        if(data.status==1){
-                            if(data.data.logs.length==0&&data.data.rows==0){
+                        if(res.status==1 && res.data.status == 1){
+                            if(res.data.log==null&&res.data.rows==null){
                                 str ='<span class="waite"></span>';
                             }else{
                                 str='';
@@ -160,14 +159,14 @@
                             if(str!=''){
                                 $(params.logArea).append(str);
                             }
-                            target.renderLogs(data.data.logs);
-                            target.renderResult(data.data.rows);
+                            target.renderLogs(res.data.logs);
+                            target.renderResult(res.data.rows);
                         }else{
-                            art.dialog({title:'提示',time:3, content:data.msg});
+                            $(params.logArea).append('<p>爬虫正在启动中...</p>');
                         }
                     }
                 })
-            },1000)
+            },2000)
         }
         this._getParams =function () {
             data['code'] = editor.getValue();
@@ -178,19 +177,19 @@
               target._getParams();
               for(var i in allMessage){
                   var row =allMessage[i];
-                  if(data['log_type']==0&&data['log_level']==0){
-                      str += '<p class="logs ' + row['log_type'] + '   ' + row['log_level'] + '"><i class="circle log-type_' + row['log_type'] + '"></i><span class="log-error-type_' + row['log_level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
-                  }else if(data['log_type']==0&&data['log_level']!=0){
-                      if(allMessage[i]['log_level']==data['log_level']){
-                          str += '<p class="logs ' + row['log_type'] + '   ' + row['log_level'] + '"><i class="circle log-type_' + row['log_type'] + '"></i><span class="log-error-type_' + row['log_level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                  if(data['type']==0&&data['level']==0){
+                      str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                  }else if(data['type']==0&&data['level']!=0){
+                      if(allMessage[i]['level']==data['level']){
+                          str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                       }
-                  }else if(data['log_type']!=0&&data['log_level']==0){
-                      if(allMessage[i]['log_type']==data['log_type']){
-                          str += '<p class="logs ' + row['log_type'] + '   ' + row['log_level'] + '"><i class="circle log-type_' + row['log_type'] + '"></i><span class="log-error-type_' + row['log_level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                  }else if(data['log_type']!=0&&data['level']==0){
+                      if(allMessage[i]['log_type']==data['type']){
+                          str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                       }
                   }else{
-                       if((allMessage[i]['log_type']==data['log_type'])&&allMessage[i]['log_level']==data['log_level']){
-                           str += '<p class="logs ' + row['log_type'] + '   ' + row['log_level'] + '"><i class="circle log-type_' + row['log_type'] + '"></i><span class="log-error-type_' + row['log_level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                       if((allMessage[i]['type']==data['type'])&&allMessage[i]['level']==data['level']){
+                           str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                        }
                   }
               }

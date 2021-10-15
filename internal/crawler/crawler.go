@@ -19,19 +19,19 @@ const (
 
 const (
 	APP_NAME      = "name"
-	MAX_LIMIT     = "max_limit"
+	MAX_LIMIT     = "maxLimit"
 	DOMAIN        = "domains"
-	SCAN_URLS     = "scan_urls"
-	CONTENT_REGEX = "content_regex"
-	HELPER_REGEX  = "helper_regex"
+	SCAN_URLS     = "scanUrls"
+	CONTENT_REGEX = "contentRegex"
+	HELPER_REGEX  = "helperRegex"
 	FIELDS        = "fields"
 	TIMEOUT       = "timeout"
 	COOKIE        = "cookie"
 	//CONFIG_JS_ENGINE        = "js_engine"
 	//CONFIG_ENABLEJS         = "enable_js"
-	USERAGENT          = "user_agent"
-	ACCEPT_HTTP_STATUS = "accept_http_status"
-	AUTOFIND_URLS      = "auto_find_urls"
+	USERAGENT          = "userAgent"
+	ACCEPT_HTTP_STATUS = "acceptHttpStatus"
+	AUTOFIND_URLS      = "autoFindUrls"
 	DELAY              = "delay"
 	//CONFIG_VISIT_TYPE       = "visit_type"
 
@@ -197,16 +197,16 @@ type FieldStash struct {
 	//标识当前抽取项的值是否必须（不能为空）。默认是false，可以为空。
 	Required bool `json:"required"`
 	//需要下载
-	Download bool `json:"download"`
+	//Download bool `json:"download"`
 	//抽取规则的类型。默认值是SelectorType.XPath
 	//SelectorType.XPath 一般针对html网页或xml，查看教程
 	//SelectorType.JsonPath 针对json数据，查看教程
 	//SelectorType.Regex 可以针对一切文本，查看教程
-	SelectorType int `json:"selector_type"`
+	SelectorType int `json:"selectorType"`
 	//抽取规则 如果selector为空或者未设置，则抽取的值为null，在进行required的判定之前，仍会进行afterExtractField回调。
 	Selector string `json:"selector"`
 	//内容类型 0:text 1:html
-	BodyType int `json:"body_type"`
+	BodyType int `json:"bodyType"`
 	// 抽取项的子抽取项。
 	//field支持子项，可以设置多层级，方便数据以本身的层级方式存储，而不用全部展开到第一层级。
 	//注意：
@@ -272,16 +272,16 @@ const (
 type CrawlerConfig struct {
 	Name             string           `json:"name"`
 	Domains          []interface{}    `json:"domains"`
-	MaxLimit         int              `json:"max_limit"`
-	ScanUrls         []interface{}    `json:"scan_urls"`
-	HelperRegex      []*regexp.Regexp `json:"helper_regex"`
-	ContentRegex     []*regexp.Regexp `json:"content_regex"`
+	MaxLimit         int              `json:"maxLimit"`
+	ScanUrls         []interface{}    `json:"scanUrls"`
+	HelperRegex      []*regexp.Regexp `json:"helperRegex"`
+	ContentRegex     []*regexp.Regexp `json:"contentRegex"`
 	Fields           []*FieldStash    `json:"fields"`
 	Timeout          int64            `json:"timeout"`
 	Delay            int64            `json:"delay"`
-	UserAgent        int              `json:"user_agent"`
-	AcceptHttpStatus []int            `json:"accept_http_status"`
-	AutoFindUrls     bool             `json:"auto_find_urls"`
+	UserAgent        int              `json:"userAgent"`
+	AcceptHttpStatus []int            `json:"acceptHttpStatus"`
+	AutoFindUrls     bool             `json:"autoFindUrls"`
 }
 
 type Application struct {

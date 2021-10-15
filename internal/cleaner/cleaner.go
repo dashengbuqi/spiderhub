@@ -45,7 +45,7 @@ func (this *Cleaner) Run() {
 	defer func() {
 		p := recover()
 		if p != nil {
-			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
 		err := this.inst.ModifyStatus(this.appId, collect.STATUS_NORMAL)
 		if err != nil {
@@ -57,7 +57,7 @@ func (this *Cleaner) Run() {
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "开始执行任务...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "开始执行任务...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 	//初始化数据结构
 	if this.method == common.SCHEDULE_METHOD_EXECUTE {
 		this.initTable()
@@ -76,7 +76,7 @@ func (this *Cleaner) Run() {
 		//获取爬虫数据
 		list, err := cd.GetRowsBy(skip, limit)
 		if err != nil {
-			this.outLog <- helper.FmtLog(common.LOG_ERROR, "获取分页数据错误:"+err.Error(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_ERROR, "获取分页数据错误:"+err.Error(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			continue
 		}
 		if list == nil {
@@ -93,9 +93,9 @@ func (this *Cleaner) Run() {
 Loop:
 	if len(lost) == 0 {
 		lostStr, _ := json.Marshal(lost)
-		this.outLog <- helper.FmtLog(common.LOG_ERROR, string(lostStr), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_ERROR, string(lostStr), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 	}
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 }
 
 func (this *Cleaner) Stop() {

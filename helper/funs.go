@@ -5,7 +5,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/antchfx/htmlquery"
+	"github.com/antchfx/xpath"
+	"github.com/axgle/mahonia"
 	"github.com/dashengbuqi/spiderhub/internal/common"
+	"github.com/oliveagle/jsonpath"
 	"github.com/robertkrimen/otto"
 	"math/rand"
 	"net/url"
@@ -19,19 +23,6 @@ var (
 
 func init() {
 	r = rand.New(rand.NewSource(time.Now().Unix()))
-}
-
-//格式化输出日志
-func FmtLog(title, content string, level, tp int) []byte {
-	l := &common.LogLevel{
-		Level:     level,
-		Type:      tp,
-		Title:     title,
-		Content:   content,
-		CreatedAt: time.Now().Unix(),
-	}
-	res, _ := json.Marshal(l)
-	return res
 }
 
 func FmtConsole(argumentList []otto.Value) string {
@@ -104,4 +95,136 @@ func RandString(len int) string {
 		bytes[i] = byte(b)
 	}
 	return string(bytes)
+}
+
+func ValidUTF8(buf []byte) bool {
+	nBytes := 0
+	for i := 0; i < len(buf); i++ {
+		if nBytes == 0 {
+			if (buf[i] & 0x80) != 0 { //与操作之后不为0，说明首位为1
+				for (buf[i] & 0x80) != 0 {
+					buf[i] <<= 1 //左移一位
+					nBytes++     //记录字符共占几个字节
+				}
+
+				if nBytes < 2 || nBytes > 6 { //因为UTF8编码单字符最多不超过6个字节
+					return false
+				}
+
+				nBytes-- //减掉首字节的一个计数
+			}
+		} else { //处理多字节字符
+			if buf[i]&0xc0 != 0x80 { //判断多字节后面的字节是否是10开头
+				return false
+			}
+			nBytes--
+		}
+	}
+	return nBytes == 0
+}
+
+func ConvertToString(src string, srcCode string, tagCode string) string {
+	srcCoder := mahonia.NewDecoder(srcCode)
+	srcResult := srcCoder.ConvertString(src)
+	tagCoder := mahonia.NewDecoder(tagCode)
+	_, cdata, _ := tagCoder.Translate([]byte(srcResult), true)
+	result := string(cdata)
+	return result
+}
+
+func AutoFindLinkUrls(body string) (result []string) {
+	urls := Extracts(body, "//a/@href", common.SELECTORTYPE_XPATH)
+	if len(urls) > 0 {
+		for _, url := range urls {
+			//if strings.Contains(url, "http") || strings.Contains(url, "https") {
+			result = append(result, url.(string))
+			//}
+		}
+	}
+	return result
+}
+
+func Extracts(content, pathRule string, ruleType int) []interface{} {
+	if ruleType == common.SELECTORTYPE_JSONPATH {
+		var jsonData interface{}
+		json.Unmarshal([]byte(content), &jsonData)
+		var rs []interface{}
+		pat, _ := jsonpath.Compile(pathRule)
+		res, err := pat.Lookup(jsonData)
+
+		if err != nil {
+			return rs
+		}
+		return res.([]interface{})
+	} else {
+		doc, err := htmlquery.Parse(strings.NewReader(content))
+		if err != nil {
+			return nil
+		}
+		expr := xpath.MustCompile(pathRule)
+		iter := expr.Evaluate(htmlquery.CreateXPathNavigator(doc)).(*xpath.NodeIterator)
+
+		var rs []interface{}
+		for iter.MoveNext() {
+			if v := iter.Current().Value(); len(v) > 0 {
+				rs = append(rs, v)
+			}
+		}
+		return rs
+	}
+}
+
+func ExtractHtml(content, pathRule string, ruleType int) string {
+	if ruleType == common.SELECTORTYPE_JSONPATH {
+		var jsonData interface{}
+		json.Unmarshal([]byte(content), &jsonData)
+
+		res, err := jsonpath.JsonPathLookup(jsonData, pathRule)
+
+		if err != nil {
+			return ""
+		}
+		return res.(string)
+	} else {
+		root, err := htmlquery.Parse(strings.NewReader(content))
+		if err != nil {
+			return ""
+		}
+		node := htmlquery.FindOne(root, pathRule)
+		if node == nil {
+			return ""
+		}
+		return htmlquery.OutputHTML(node, true)
+	}
+}
+
+func ExtractItem(content, pathRule string, ruleType int) interface{} {
+	if ruleType == common.SELECTORTYPE_JSONPATH {
+		var jsonData interface{}
+		json.Unmarshal([]byte(content), &jsonData)
+
+		res, err := jsonpath.JsonPathLookup(jsonData, pathRule)
+
+		if err != nil {
+			return ""
+		}
+		return res
+	} else {
+		var rs interface{}
+		node, err := htmlquery.Parse(strings.NewReader(content))
+		if err != nil {
+			return nil
+		}
+		expr := xpath.MustCompile(pathRule)
+		iter := expr.Evaluate(htmlquery.CreateXPathNavigator(node)).(*xpath.NodeIterator)
+
+		for iter.MoveNext() {
+			if v := iter.Current().Value(); len(v) > 0 {
+				rs = v
+				break
+			}
+		}
+		return rs
+	}
+
 }

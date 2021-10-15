@@ -3,23 +3,22 @@ package crawler
 import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-	"github.com/dashengbuqi/spiderhub/internal/crawler/spider"
 	"sync"
 )
 
 type crawlerPool struct {
-	data map[string]*spider.Spider
+	data map[string]*Spider
 }
 
 var (
 	mu    sync.RWMutex
 	Spool = &crawlerPool{
-		data: make(map[string]*spider.Spider),
+		data: make(map[string]*Spider),
 	}
 )
 
 //启动蜘蛛
-func (this *crawlerPool) Start(key string, spd *spider.Spider) {
+func (this *crawlerPool) Start(key string, spd *Spider) {
 	mu.Lock()
 	defer mu.Unlock()
 	has := this.set(key, spd)
@@ -44,7 +43,7 @@ func (this *crawlerPool) Exist(key string) bool {
 	_, ok := this.data[key]
 	return ok
 }
-func (this *crawlerPool) set(key string, spd *spider.Spider) bool {
+func (this *crawlerPool) set(key string, spd *Spider) bool {
 	mu.Lock()
 	defer mu.Unlock()
 	this.data[key] = spd
@@ -59,7 +58,7 @@ func (this *crawlerPool) delete(key string) {
 	}
 }
 
-func (this *crawlerPool) Get(key string) *spider.Spider {
+func (this *crawlerPool) Get(key string) *Spider {
 	mu.RLock()
 	defer mu.RUnlock()
 	return this.data[key]

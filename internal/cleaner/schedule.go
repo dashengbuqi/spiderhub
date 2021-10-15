@@ -72,7 +72,7 @@ func (this *Schedule) Run() {
 			spiderhub.Logger.Error("%v", err)
 		}
 		isDebug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
-		err = this.pushLogger(helper.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH), isDebug)
+		err = this.pushLogger(common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH), isDebug)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -84,13 +84,13 @@ func (this *Schedule) Run() {
 	debug := map[string]interface{}{
 		"log": func(call otto.FunctionCall) otto.Value {
 			out := helper.FmtConsole(call.ArgumentList)
-			this.outLog <- helper.FmtLog(common.LOG_DEBUG, out, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_DEBUG, out, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			return otto.Value{}
 		},
 	}
 	err := this.mainRule.Init(this.inData.Content)
 	if err != nil {
-		this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 	}
 	this.mainRule.Container.Set("console", debug)
 	for {
@@ -127,7 +127,7 @@ func (this *Schedule) init(call otto.FunctionCall) otto.Value {
 func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	key := helper.NewToken(this.inData.UserId, this.inData.AppId, this.inData.DebugId).Pool().ToString()
 	if CleanPool.Exist(key) {
-		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
 	sp := collect.NewApplication()
@@ -148,13 +148,13 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
-				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 			//清空日志
 			logObj := spiderhub_data.NewCrawlerLog(this.logTable)
 			err = logObj.RemoveRows()
 			if err != nil {
-				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 		}
 		cn := NewCleaner(this.inData.AppId, this.inData.Token, this.dataTable, this.inData.Method, this.mainRule.Rules, this.container, this.outLog, this.outData)

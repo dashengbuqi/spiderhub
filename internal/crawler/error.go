@@ -1,18 +1,16 @@
-package spider
+package crawler
 
 import (
 	"crypto/md5"
 	"encoding/hex"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-
-	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/gocolly/colly"
 	"strings"
 	"time"
 )
 
 func (this *Spider) onError(resp *colly.Response, e error) {
-	this.outLog <- helper.FmtLog(common.LOG_ERROR, e.Error()+": "+resp.Request.URL.String(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_ERROR, e.Error()+": "+resp.Request.URL.String(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 
 	h := md5.New()
 	h.Write([]byte(strings.ToLower(resp.Request.URL.String())))

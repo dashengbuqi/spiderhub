@@ -1,11 +1,9 @@
-package spider
+package crawler
 
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-	"github.com/dashengbuqi/spiderhub/internal/crawler"
 	"github.com/gocolly/colly"
 	"net/http"
 	"net/url"
@@ -21,36 +19,36 @@ func (this *Spider) onRequest(r *colly.Request) {
 	if this.method == common.SCHEDULE_METHOD_DEBUG {
 		nowTime := time.Now().Unix()
 		if this.tm+600 < nowTime {
-			this.outLog <- helper.FmtLog(common.LOG_INFO, "调试模式只允许执行10分钟", common.LOG_LEVEL_DEBUG, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_INFO, "调试模式只允许执行10分钟", common.LOG_LEVEL_DEBUG, common.LOG_TYPE_SYSTEM)
 			this.abort = true
 		}
 	}
 	if this.abort == true {
-		this.outLog <- helper.FmtLog(common.LOG_INFO, "停止爬虫[url] "+r.URL.String(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_INFO, "停止爬虫[url] "+r.URL.String(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		r.Abort()
 	}
 	queueCount, _ := this.queue.Size()
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "爬虫剩余"+strconv.Itoa(queueCount), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "爬虫剩余"+strconv.Itoa(queueCount), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 	//检查当前请求是否合法
 	var allowUrl bool
-	if len(this.params[crawler.DOMAIN].([]string)) > 0 {
-		for _, regex := range this.params[crawler.DOMAIN].([]string) {
+	if len(this.params[DOMAIN].([]string)) > 0 {
+		for _, regex := range this.params[DOMAIN].([]string) {
 			if match, err := regexp.MatchString(regex, r.URL.Host); err == nil && match == true {
 				allowUrl = true
 			}
 		}
 	}
 	if allowUrl == false {
-		this.outLog <- helper.FmtLog(common.LOG_ERROR, "不在请求范围内停止执行[url] "+r.URL.String(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_ERROR, "不在请求范围内停止执行[url] "+r.URL.String(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		r.Abort()
 	}
-	if _, ok := this.params[crawler.COOKIE]; ok {
-		cookie := this.params[crawler.COOKIE].(string)
+	if _, ok := this.params[COOKIE]; ok {
+		cookie := this.params[COOKIE].(string)
 		r.Headers.Add("cookie", cookie)
 	}
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "加载页面:"+r.URL.String(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "加载页面:"+r.URL.String(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 	//请求前添加header
-	if res, err := this.container.Call(crawler.FUNC_BEFORE_CRAWL, nil, r); err == nil {
+	if res, err := this.container.Call(FUNC_BEFORE_CRAWL, nil, r); err == nil {
 		if res.IsDefined() {
 			if res.IsObject() {
 				keys := res.Object().Keys()
@@ -62,7 +60,7 @@ func (this *Spider) onRequest(r *colly.Request) {
 		}
 	}
 	//请求前链接需要需要时间戳或其它参数重写此方法更新当前链接即可
-	if res, err := this.container.Call(crawler.FUNC_BEFORE_DOWNLOAD_PAGE, nil, r.URL.String()); err == nil {
+	if res, err := this.container.Call(FUNC_BEFORE_DOWNLOAD_PAGE, nil, r.URL.String()); err == nil {
 		if res.IsDefined() && res.IsObject() {
 			keys := res.Object().Keys()
 			params := make(map[string]interface{})
@@ -105,7 +103,7 @@ func (this *Spider) onRequest(r *colly.Request) {
 									} else {
 										subParams[k2], err = v2.Export()
 										if err != nil {
-											this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+											this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 										}
 									}
 								}
@@ -113,7 +111,7 @@ func (this *Spider) onRequest(r *colly.Request) {
 							} else {
 								params[k1], err = v1.Export()
 								if err != nil {
-									this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+									this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 								}
 							}
 						}
@@ -134,7 +132,7 @@ func (this *Spider) onRequest(r *colly.Request) {
 							uri := params["URL"].(string)
 							err := this.queue.AddURL(uri)
 							if err != nil {
-								this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+								this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 							}
 						}
 					} else if method == http.MethodPost || method == http.MethodPut {
@@ -171,7 +169,7 @@ func (this *Spider) onRequest(r *colly.Request) {
 						}
 						err = this.queue.AddRequest(re)
 						if err == nil {
-							this.outLog <- helper.FmtLog(common.LOG_INFO, "加载页面:"+r.URL.String(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+							this.outLog <- common.FmtLog(common.LOG_INFO, "加载页面:"+r.URL.String(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 							r.Abort()
 						}
 					}

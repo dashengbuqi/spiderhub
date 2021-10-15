@@ -1,4 +1,4 @@
-<link rel="stylesheet" type="text/css" href="/static/css/index.css">
+<link rel="stylesheet" type="text/css" href="/static/css/index.css?t=1">
 <link rel="stylesheet" type="text/css" href="/static/codemirror/lib/codemirror.css">
 <link rel="stylesheet" type="text/css" href="/static/font-awesome/css/font-awesome.css">
 <link rel="stylesheet" type="text/css" href="/static/codemirror/theme/monokai.css">
@@ -9,6 +9,7 @@
 <link rel="stylesheet" type="text/css" href="/static/codemirror/addon/hint/show-hint.css">
 <link rel="stylesheet" type="text/css" href="/static/css/jqx.base.css">
 <link rel="stylesheet" type="text/css" href="/static/dialog/ui_art_dialog.css">
+
 <div  class="editor codemirror-editor-index clearfix" id="mainSplitter" style="width: 100%">
     <!-- 左 -->
     <div class="editor-left left">
@@ -40,9 +41,7 @@
                         <li>
                             <span >&nbsp;爬取结果</span>
                             <span class="">测试状态:&nbsp;</span>
-                            <span id="status" class="status-pause">
-                                                 未启动
-                                             </span>
+                            <span id="status" class="status-pause">未启动</span>
                         </li>
                     </ul>
                     <ul class="right">
@@ -61,7 +60,7 @@
                 <div class="editor-toolbar">
                     <ul class="">
                         <li class="run">
-                            <a class="btn bug-btn disabled_<?=$app['exec_status']?>"><i class="fa fa-bug"></i> 测试</a>
+                            <a class="btn bug-btn disabled_{{.status}}"><i class="fa fa-bug"></i> 测试</a>
                         </li>
                         <li  style="display: none;" class="pause">
                             <a class="btn">
@@ -129,7 +128,7 @@
 <script type="text/javascript" src="/static/dialog/jquery.artDialog.js"></script>
 <script type="text/javascript" src="/static/dialog/jquery.artDialog.extend.js"></script>
 <script type="text/javascript" src="/static/dialog/artDialog.iframeTools.js"></script>
-<script src="/static/js/index.js?t=1"></script>
+<script src="/static/js/index.js?t=8"></script>
 <script type="text/javascript">
     var status = {{.status}}
     var app_id = {{.id}}
@@ -190,3 +189,76 @@
         }
     });
 </script>
+<style type="text/css">
+    .CodeMirror{
+        font-size : 15px;
+        line-height : 150%;
+        width: 100%;
+        background: #272822;
+        height: 100%;
+        color: #f8f8f2;
+        padding-top: 27px;
+    }
+    .panel-header, .panel-body{
+        border-color: #000000;
+    }
+    .status_3,.status_1{
+        color:green;
+    }
+    .circle{
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .editor-result{
+        overflow-y: scroll;
+    }
+    .status_-1{
+        color:red;
+    }
+    .status_0{
+        color:darkseagreen;
+    }
+    .status_2{
+        color:yellow;
+    }
+    .waite{
+        width: 2px;
+        height: 2px;
+        display: inline-block;
+        background-color: white;
+        border-radius: 50%;
+        vertical-align: middle;
+        margin: 10px 2px;
+    }
+    .logs{
+        line-height: 18px;
+        margin: 5px 0;
+        position: relative;
+    }
+    .logs span{
+        width: 100%;
+        display: inline-block;
+        margin-left: 20px;
+        word-break: break-all;
+    }
+    .logs i{
+        margin-right: 6px;
+        position: absolute;
+        top: 3px;
+    }
+    .log_1{
+        color:#99dcf3;
+    }
+    .log_2{
+        color:white;
+    }
+    .log_3{
+        color:#ff9900;
+    }
+    .log_4{
+        color:red;
+    }
+</style>

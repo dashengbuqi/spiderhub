@@ -7,19 +7,9 @@ import (
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
 )
 
-var (
-	CleanerChannel = queue.Channel{
-		Exchange:     "Cleaners",
-		ExchangeType: "direct",
-		RoutingKey:   "Request",
-		Reliable:     true,
-		Durable:      false,
-	}
-)
-
 func RunServer() {
 	c := make(chan []byte)
-	go queue.RabbitConn.Consume(&CleanerChannel, c)
+	go queue.RabbitConn.Consume(&common.CleanerChannel, c)
 
 	for {
 		select {

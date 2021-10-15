@@ -1,12 +1,10 @@
-package spider
+package crawler
 
 import (
 	"crypto/tls"
 	"encoding/json"
 	"github.com/dashengbuqi/spiderhub"
-	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-	"github.com/dashengbuqi/spiderhub/internal/crawler"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/gocolly/colly"
 	"github.com/gocolly/colly/extensions"
@@ -57,7 +55,7 @@ func (this *Spider) Run() {
 	defer func() {
 		p := recover()
 		if p != nil {
-			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
 		err := this.inst.ModifyStatus(this.appId, collect.STATUS_NORMAL)
 		if err != nil {
@@ -69,7 +67,7 @@ func (this *Spider) Run() {
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "开始执行任务...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "开始执行任务...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 
 	//初始化数据结构
 	if this.method == common.SCHEDULE_METHOD_EXECUTE {
@@ -83,11 +81,11 @@ func (this *Spider) Run() {
 	//不可重复抓取
 	sp.AllowURLRevisit = false
 	var timeout int64 = 30
-	if _, ok := this.params[crawler.TIMEOUT]; ok {
-		timeout = this.params[crawler.TIMEOUT].(int64)
+	if _, ok := this.params[TIMEOUT]; ok {
+		timeout = this.params[TIMEOUT].(int64)
 	}
-	if _, ok := this.params[crawler.MAX_LIMIT]; ok {
-		this.maxLimit = this.params[crawler.MAX_LIMIT].(int)
+	if _, ok := this.params[MAX_LIMIT]; ok {
+		this.maxLimit = this.params[MAX_LIMIT].(int)
 	}
 	//请求超时
 	timeouts := time.Duration(timeout) * time.Second
@@ -95,8 +93,8 @@ func (this *Spider) Run() {
 
 	//限速
 	var delay int64 = 1
-	if _, ok := this.params[crawler.DELAY]; ok {
-		delay = this.params[crawler.DELAY].(int64)
+	if _, ok := this.params[DELAY]; ok {
+		delay = this.params[DELAY].(int64)
 	}
 	delays := time.Duration(delay) * time.Second
 	err = sp.Limit(
@@ -112,7 +110,7 @@ func (this *Spider) Run() {
 
 	this.queue, _ = queue.New(2, nil)
 
-	this.container.Call(crawler.FUNC_INIT_CRAWL, nil, this.queue)
+	this.container.Call(FUNC_INIT_CRAWL, nil, this.queue)
 	//随机UA
 	extensions.RandomUserAgent(sp)
 
@@ -126,35 +124,35 @@ func (this *Spider) Run() {
 	sp.OnScraped(this.onScraped)
 
 	//加载入口
-	if _, ok := this.params[crawler.SCAN_URLS]; ok {
-		for _, u := range this.params[crawler.SCAN_URLS].([]interface{}) {
-			this.outLog <- helper.FmtLog(common.LOG_INFO, u.(string), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	if _, ok := this.params[SCAN_URLS]; ok {
+		for _, u := range this.params[SCAN_URLS].([]interface{}) {
+			this.outLog <- common.FmtLog(common.LOG_INFO, u.(string), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			uf, _ := url.QueryUnescape(u.(string))
 			err := this.queue.AddURL(uf)
 			if err != nil {
-				this.outLog <- helper.FmtLog(common.LOG_ERROR, u.(string), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+				this.outLog <- common.FmtLog(common.LOG_ERROR, u.(string), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			}
 		}
 	}
 	err = this.queue.Run(sp)
 	if err != nil {
-		this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 	}
 }
 
 func (this *Spider) Stop() {
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "爬虫停止中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "爬虫停止中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 	this.abort = true
 }
 
 func (this *Spider) Finish() {
-	this.outLog <- helper.FmtLog(common.LOG_INFO, "爬虫已停止运行", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "爬虫已停止运行", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 	//this.bean.ModifyStatus(this.appId,spider_main.CRAWLER_STATUS_NORMAL)
 }
 
 func (this *Spider) initTable() {
 	var items []interface{}
-	for _, field := range this.params[crawler.FIELDS].([]crawler.FieldStash) {
+	for _, field := range this.params[FIELDS].([]FieldStash) {
 		table := make(map[string]string)
 		alias := field.Alias
 		if len(alias) == 0 {

@@ -150,6 +150,8 @@ func (this *Base) Publish(c *Channel, body []byte) error {
 				break
 			}
 			times++
+		} else {
+			break
 		}
 	}
 	return err

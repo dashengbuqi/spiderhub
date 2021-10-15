@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
 	"github.com/dashengbuqi/spiderhub/internal/backend/widgets"
@@ -94,4 +95,41 @@ func (this *CollectController) PostSave() string {
 		return helper.ResultError(err.Error())
 	}
 	return helper.ResultSuccess("保存成功", nil)
+}
+
+//调试开始
+func (this *CollectController) PostBegin() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	code := this.Ctx.FormValue("code")
+	fmt.Println(id, code)
+	debug_id, err := this.Service.CrawlerBegin(id, code)
+	fmt.Println(debug_id, err)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("开始执行", iris.Map{"debug_id": debug_id})
+}
+
+//心跳检测
+func (this *CollectController) GetHeart() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
+	res := this.Service.CrawlerHeart(id, debug_id, 0)
+	return helper.ResultSuccess("SUCCESS", res)
+}
+
+//调试结束
+func (this *CollectController) PutEnd() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
+	err := this.Service.CrawlerEnd(id, debug_id, 0)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("调试正在终止...", nil)
+}
+
+//正在开始
+func (this *CollectController) PutStart() {
+
 }

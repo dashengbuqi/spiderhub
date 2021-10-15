@@ -6,7 +6,6 @@ import (
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-	"github.com/dashengbuqi/spiderhub/internal/crawler/spider"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
@@ -31,12 +30,12 @@ type Schedule struct {
 
 func NewSchedule(cc common.Communication) *Schedule {
 	cc.Token = helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Crawler().ToString()
-	dataTb := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, cc.Token)
-	logTb := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, cc.Token)
+	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, cc.Token)
+	logTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, cc.Token)
 	return &Schedule{
 		inData:    &cc,
-		dataTable: dataTb,
-		logTable:  logTb,
+		dataTable: dataTable,
+		logTable:  logTable,
 		outLog:    make(chan []byte),
 		outData:   make(chan map[string]interface{}),
 		mainRule:  NewApplication(),
@@ -44,7 +43,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 		logQueue: &queue.Channel{
 			Exchange:     "Crawlers",
 			ExchangeType: "direct",
-			RoutingKey:   logTb,
+			RoutingKey:   logTable,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -52,7 +51,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 		dataQueue: &queue.Channel{
 			Exchange:     "Crawlers",
 			ExchangeType: "direct",
-			RoutingKey:   dataTb,
+			RoutingKey:   dataTable,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -70,7 +69,7 @@ func (this *Schedule) Run() {
 			spiderhub.Logger.Error("%v", err)
 		}
 		isDebug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
-		err = this.pushLog(helper.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH), isDebug)
+		err = this.pushLog(common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH), isDebug)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -79,14 +78,14 @@ func (this *Schedule) Run() {
 	}()
 	err := this.container.Set("Crawler", this.init)
 	if err != nil {
-		this.outLog <- helper.FmtLog(common.LOG_ERROR, "初始化失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_ERROR, "初始化失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		return
 	}
 	//初始化 js中的console.log
 	console := map[string]interface{}{
 		"log": func(call otto.FunctionCall) otto.Value {
 			res := helper.FmtConsole(call.ArgumentList)
-			this.outLog <- helper.FmtLog(common.LOG_DEBUG, res, common.LOG_LEVEL_DEBUG, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_DEBUG, res, common.LOG_LEVEL_DEBUG, common.LOG_TYPE_SYSTEM)
 			return otto.Value{}
 		},
 	}
@@ -97,7 +96,7 @@ func (this *Schedule) Run() {
 	go func() {
 		err := this.mainRule.Init(this.inData.Content)
 		if err != nil {
-			this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
 	}()
 
@@ -139,14 +138,14 @@ func (this *Schedule) init(call otto.FunctionCall) otto.Value {
 func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	token := helper.NewToken(this.inData.UserId, this.inData.AppId, this.inData.DebugId).Pool().ToString()
 	if Spool.Exist(token) {
-		this.outLog <- helper.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		this.outLog <- nil
 		return otto.Value{}
 	}
 	sc := collect.NewApplication()
 	this.bean, _ = sc.GetRowByID(this.inData.AppId)
 	if this.bean.Id == 0 {
-		this.outLog <- helper.FmtLog(common.LOG_ERROR, "未找到应用数据,请先创建爬虫应用", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_ERROR, "未找到应用数据,请先创建爬虫应用", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		return otto.Value{}
 	}
 
@@ -162,17 +161,17 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
-				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 			//清空日志
 			logObj := spiderhub_data.NewCrawlerLog(this.logTable)
 			err = logObj.RemoveRows()
 			if err != nil {
-				this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 		}
 		//初始化蜘蛛
-		spd := spider.NewSpider(this.inData.AppId, this.inData.Method, this.mainRule.Rules, this.inData.Token, this.mainRule.Container, this.outLog, this.outData)
+		spd := NewSpider(this.inData.AppId, this.inData.Method, this.mainRule.Rules, this.inData.Token, this.mainRule.Container, this.outLog, this.outData)
 		Spool.Start(token, spd)
 	}()
 	wg.Wait()
