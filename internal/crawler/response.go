@@ -3,9 +3,13 @@ package crawler
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/gocolly/colly"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strconv"
 	"strings"
@@ -67,21 +71,7 @@ func (this *Spider) success(r *colly.Response) {
 					} else {
 						if rs, err := this.container.Call(FUNC_ON_PROCESS_SCAN_PAGE, nil, body, this.queue); err == nil {
 							if status, _ := rs.ToBoolean(); status == true {
-								urls := helper.AutoFindLinkUrls(body)
-								if len(urls) > 0 {
-									for _, url := range urls {
-										this.outLog <- common.FmtLog("发现新网页", url, common.LOG_LEVEL_INFO, common.LOG_TYPE_URL)
-										if this.abort == false {
-											if strings.Contains(url, "http") || strings.Contains(url, "https") {
-												this.queue.AddURL(url)
-											} else {
-												//[scheme:][//[userinfo@]host][/]path[?query][#fragment]
-												url = strings.TrimPrefix(url, "/")
-												this.queue.AddURL(r.Request.URL.Scheme + "://" + r.Request.URL.Host + "/" + url)
-											}
-										}
-									}
-								}
+								this.autoFindURL(body, r)
 							}
 						}
 					}
@@ -101,31 +91,12 @@ func (this *Spider) success(r *colly.Response) {
 		if valid {
 			if res, err := this.container.Call(FUNC_ON_PROCESS_HELPER_PAGE, nil, body, r.Request.URL.String(), this.queue); err == nil {
 				if status, _ := res.ToBoolean(); status == true {
-					urls := helper.AutoFindLinkUrls(body)
-					if len(urls) > 0 {
-						for _, url := range urls {
-							for _, regex := range this.params[CONTENT_REGEX].([]string) {
-								if m, err := regexp.MatchString(regex, url); err == nil && m == true {
-									this.outLog <- common.FmtLog("提示", url, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
-									if this.abort == false {
-										if strings.Contains(url, "http") || strings.Contains(url, "https") {
-											this.queue.AddURL(url)
-										} else {
-											//[scheme:][//[userinfo@]host][/]path[?query][#fragment]
-											url = strings.TrimPrefix(url, "/")
-											this.queue.AddURL(r.Request.URL.Scheme + "://" + r.Request.URL.Host + "/" + url)
-										}
-									}
-								}
-							}
-
-						}
-					}
+					this.autoFindURL(body, r)
 				}
 			}
 		}
 	}
-	//内容页 @todo 未完成
+	//内容页
 	if _, ok := this.params[CONTENT_REGEX]; ok {
 		var valid bool
 		for _, re := range this.params[CONTENT_REGEX].([]string) {
@@ -139,6 +110,332 @@ func (this *Spider) success(r *colly.Response) {
 			if res.IsDefined() == true {
 				if has, _ := res.ToBoolean(); has {
 					this.forbidden(r)
+					return
+				}
+			}
+		}
+		//内容页
+		if res, err := this.container.Call(FUNC_ON_PROCESS_CONTENT_PAGE, nil, body, this.queue); err == nil {
+			if state, _ := res.ToBoolean(); state == true {
+				this.autoFindURL(body, r)
+			}
+		}
+		// @todo 未完成
+		this.mu.Lock()
+		respData := this.extract(body, r.Request.URL.String())
+		fmt.Println(respData)
+		this.mu.Unlock()
+	}
+}
+
+func (this *Spider) extract(body string, curl string) map[string]interface{} {
+	defer func() {
+		if p := recover(); p != nil {
+			str, ok := p.(string)
+			var err error
+			if ok {
+				err = errors.New(str)
+			} else {
+				err = errors.New("异常提取内容")
+			}
+			this.outLog <- common.FmtLog("异常", err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		}
+	}()
+	fields := this.params[FIELDS].([]FieldStash)
+	result := make(map[string]interface{})
+	if len(fields) > 0 {
+		for _, field := range fields {
+			if field.Temporary == false {
+				data := this.recursExtract(body, field, curl)
+				if data == nil {
+					this.outLog <- common.FmtLog("异常", "字段:"+field.Name, common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+					break
+				}
+				result[field.Name] = data
+			}
+		}
+	}
+
+	//整个网页完成抽取时回调此函数。一般在此回调中做一些数据整理的操作 FUNC_AFTER_EXTRACT_PAGE
+	if res, err := this.container.Call(FUNC_AFTER_EXTRACT_PAGE, nil, result); err == nil {
+		if res.IsDefined() {
+			keys := res.Object().Keys()
+			if len(keys) > 0 {
+				for _, key := range keys {
+					val, _ := res.Object().Get(key)
+					result[key] = val
+				}
+			}
+		}
+	}
+	return result
+}
+
+//递归的提取字段
+func (this *Spider) recursExtract(body string, field FieldStash, curl string) map[bool]interface{} {
+	defer func() {
+		if p := recover(); p != nil {
+			str, ok := p.(string)
+			var err error
+			if ok {
+				err = errors.New(str)
+			} else {
+				err = errors.New("异常提取内容")
+			}
+			this.outLog <- common.FmtLog("异常", err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		}
+	}()
+	data := make(map[bool]interface{})
+	valueType := field.Type
+	//设置默认值
+	if len(valueType) == 0 || helper.ValueInArray(valueType, TypeArr) == false {
+		valueType = TYPE_STRING
+	}
+	//字符串处理
+	if valueType == TYPE_STRING {
+		if field.ExtractMethod == EXTRACT_ATTACHEDURL {
+			//表示需要的数据在另外一个链接（我们叫attachedUrl）的请求结果里面，需要额外再发一次请求来获取数据。
+			u := helper.ExtractItem(body, field.Selector, field.SelectorType)
+			if len(u.(string)) == 0 {
+				data = map[bool]interface{}{
+					field.Primary: "",
+				}
+			} else {
+				var full string
+				if len(field.Func) > 0 {
+					uri, _ := this.container.Call(field.Func, nil, u, curl)
+					full = uri.String()
+				} else {
+					full = u.(string)
+				}
+				//提取到内容后回调函数
+				if res, err := this.container.Call(FUNC_AFTER_EXTRACT_FIELD, nil, full); err == nil {
+					if res.IsDefined() {
+						full = res.String()
+					}
+				}
+				requestMethod := "GET"
+				if len(field.AttachedMethod) > 0 {
+					requestMethod = field.AttachedMethod
+				}
+				var header http.Header
+				if len(field.AttachedHeaders) > 0 {
+					for k, v := range field.AttachedHeaders {
+						header.Add(k, v)
+					}
+				}
+				subBody := this.requestURL(full, requestMethod, header)
+				if len(subBody) > 0 {
+					subData := make(map[string]map[bool]interface{})
+					for _, subField := range field.Children {
+						subData[subField.Name] = this.recursExtract(subBody, subField, curl)
+					}
+					data = map[bool]interface{}{
+						field.Primary: subData,
+					}
+				}
+			}
+		} else if field.ExtractMethod == EXTRACT_NORMAL {
+			var item interface{}
+			if field.Type == TYPE_STRING {
+				item = helper.ExtractItem(body, field.Selector, field.SelectorType)
+			} else {
+				item = helper.ExtractHtml(body, field.Selector, field.SelectorType)
+			}
+			//如果必须要有值且为空的情况直接返回
+			if field.Required && item == nil {
+				return nil
+			}
+			//临时字段
+			if field.Temporary {
+				if res, err := this.container.Call(FUNC_AFTER_EXTRACT_TEMPORARY_FIELD, nil, item); err == nil {
+					if res.IsDefined() {
+						item = res.String()
+					}
+				}
+			}
+			//提取内容回调函数
+			if res, err := this.container.Call(FUNC_AFTER_EXTRACT_FIELD, nil, item); err == nil {
+				if res.IsDefined() {
+					item = res.String()
+				}
+			}
+			//自定义函数调用
+			if len(field.Func) > 0 {
+				funData, _ := this.container.Call(field.Func, nil, item, curl)
+				if funData.IsNull() {
+					data = map[bool]interface{}{
+						field.Primary: strings.TrimSpace(strings.Trim(item.(string), "\n")),
+					}
+				} else {
+					data = map[bool]interface{}{
+						field.Primary: funData.String(),
+					}
+				}
+			} else {
+				data = map[bool]interface{}{
+					field.Primary: strings.TrimSpace(strings.Trim(item.(string), "\n")),
+				}
+			}
+			//检查是否有子项
+			if len(field.Children) > 0 {
+				subData := make(map[string]map[bool]interface{})
+				for _, subField := range field.Children {
+					subData[subField.Name] = this.recursExtract(body, subField, curl)
+				}
+				data = map[bool]interface{}{
+					field.Primary: subData,
+				}
+			}
+		}
+	} else if valueType == TYPE_ARRAY {
+		item := helper.Extracts(body, field.Selector, field.SelectorType)
+		if len(field.Func) > 0 {
+			funData, _ := this.container.Call(field.Func, nil, item, curl)
+			if funData.IsUndefined() {
+				data = map[bool]interface{}{
+					field.Primary: item,
+				}
+			} else {
+				keys := funData.Object().Keys()
+				var dataArr []interface{}
+				if len(keys) > 0 {
+					for _, key := range keys {
+						val, _ := funData.Object().Get(key)
+						dataArr = append(dataArr, strings.TrimSpace(strings.Trim(val.String(), "\n")))
+					}
+					data = map[bool]interface{}{
+						field.Primary: dataArr,
+					}
+				} else {
+					data = map[bool]interface{}{
+						field.Primary: funData,
+					}
+				}
+			}
+		} else {
+			data = map[bool]interface{}{
+				field.Primary: item,
+			}
+		}
+		if len(field.Children) > 0 {
+			subData := make(map[string]map[bool]interface{})
+			for _, subField := range field.Children {
+				subData[subField.Name] = this.recursExtract(body, subField, curl)
+			}
+			data = map[bool]interface{}{
+				field.Primary: subData,
+			}
+		}
+	} else if valueType == TYPE_MAP {
+		item := helper.Extracts(body, field.Selector, field.SelectorType)
+		if len(field.Func) > 0 {
+			funData, _ := this.container.Call(field.Func, nil, item, curl)
+			if funData.IsUndefined() {
+				data = map[bool]interface{}{
+					field.Primary: item,
+				}
+			} else {
+				keys := funData.Object().Keys()
+				dataMap := make(map[string]interface{})
+				if len(keys) > 0 {
+					for _, key := range keys {
+						val, _ := funData.Object().Get(key)
+						dataMap[key] = strings.TrimSpace(strings.Trim(val.String(), "\n"))
+						//dataArr = append(dataArr, strings.TrimSpace(strings.Trim(val.String(), "\n")))
+					}
+					data = map[bool]interface{}{
+						field.Primary: dataMap,
+					}
+				} else {
+					data = map[bool]interface{}{
+						field.Primary: funData,
+					}
+				}
+			}
+		} else {
+			data = map[bool]interface{}{
+				field.Primary: item,
+			}
+		}
+		if len(field.Children) > 0 {
+			subData := make(map[string]map[bool]interface{})
+			for _, subField := range field.Children {
+				subData[subField.Name] = this.recursExtract(body, subField, curl)
+			}
+			data = map[bool]interface{}{
+				field.Primary: subData,
+			}
+		}
+	} else {
+		var item interface{}
+		item = helper.ExtractItem(body, field.Selector, field.SelectorType)
+		if field.Required && item == nil {
+			return nil
+		}
+		//临时字段
+		if field.Temporary {
+			if res, err := this.container.Call(FUNC_AFTER_EXTRACT_FIELD, nil, item); err == nil {
+				if res.IsDefined() {
+					item = res
+				}
+			}
+		}
+		//抽取到内容后回调此函数
+		if res, err := this.container.Call(FUNC_AFTER_EXTRACT_FIELD, nil, item); err == nil {
+			if res.IsDefined() {
+				item = res
+			}
+		}
+		data = map[bool]interface{}{
+			field.Primary: item,
+		}
+		if len(field.Children) > 0 {
+			subData := make(map[string]map[bool]interface{})
+			for _, subFsItem := range field.Children {
+				subData[subFsItem.Name] = this.recursExtract(body, subFsItem, curl)
+			}
+			data = map[bool]interface{}{
+				field.Primary: subData,
+			}
+		}
+	}
+	if len(data) > 0 {
+		this.container.Call(FUNC_ON_DATA_RECEIVED, nil, data[field.Primary], this.queue)
+	}
+	return data
+}
+
+//请求外链
+func (this *Spider) requestURL(uri string, method string, header http.Header) string {
+	req, _ := http.NewRequest(method, uri, nil)
+	if len(header) > 0 {
+		req.Header = header
+	}
+	client := &http.Client{}
+	resp, _ := client.Do(req)
+	defer resp.Body.Close()
+
+	if resp.StatusCode != HTTP_STATUS_SUCCESS {
+		this.outLog <- common.FmtLog("错误", "抓取外链失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		return ""
+	}
+	body, _ := ioutil.ReadAll(resp.Body)
+	return string(body)
+}
+
+func (this *Spider) autoFindURL(body string, r *colly.Response) {
+	urls := helper.AutoFindLinkUrls(body)
+	if len(urls) > 0 {
+		for _, url := range urls {
+			this.outLog <- common.FmtLog("发现新网页", url, common.LOG_LEVEL_INFO, common.LOG_TYPE_URL)
+			if this.abort == false {
+				if strings.Contains(url, "http") || strings.Contains(url, "https") {
+					this.queue.AddURL(url)
+				} else {
+					//[scheme:][//[userinfo@]host][/]path[?query][#fragment]
+					url = strings.TrimPrefix(url, "/")
+					this.queue.AddURL(r.Request.URL.Scheme + "://" + r.Request.URL.Host + "/" + url)
 				}
 			}
 		}

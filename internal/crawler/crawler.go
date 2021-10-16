@@ -163,21 +163,21 @@ const (
 	//当整个网页完成抽取时回调此函数。一般在此回调中做一些数据整理的操作，也可以继续发送网络请求，把返回的数据整理后放到data中返回。
 	FUNC_AFTER_EXTRACT_PAGE = "afterExtractPage"
 
-	VALUE_STRING = "string"
-	VALUE_ARRAY  = "array"
-	VALUE_MAP    = "map"
-	VALUE_INT    = "int"
+	TYPE_STRING = "string"
+	TYPE_ARRAY  = "array"
+	TYPE_MAP    = "map"
+	TYPE_INT    = "int"
 
 	BODY_TEXT = 0
 	BODY_HTML = 1
 )
 
 var (
-	ValueArr = []string{
-		VALUE_STRING,
-		VALUE_MAP,
-		VALUE_ARRAY,
-		VALUE_INT,
+	TypeArr = []interface{}{
+		TYPE_STRING,
+		TYPE_MAP,
+		TYPE_ARRAY,
+		TYPE_INT,
 	}
 )
 

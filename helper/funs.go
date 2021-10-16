@@ -228,3 +228,16 @@ func ExtractItem(content, pathRule string, ruleType int) interface{} {
 	}
 
 }
+
+func ValueInArray(val interface{}, valArr []interface{}) bool {
+	var res bool
+	if len(valArr) > 0 {
+		for _, item := range valArr {
+			if item == val {
+				res = true
+				break
+			}
+		}
+	}
+	return res
+}
