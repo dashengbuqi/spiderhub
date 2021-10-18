@@ -9,7 +9,7 @@ import (
 
 func RunServer() {
 	c := make(chan []byte)
-	go queue.RabbitConn.Consume(&common.CleanerChannel, c)
+	go queue.RabbitConn.Consume(&queue.CleanerChannel, c)
 
 	for {
 		select {

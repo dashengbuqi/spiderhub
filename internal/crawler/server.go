@@ -11,7 +11,7 @@ import (
 func RunServer() {
 	c := make(chan []byte)
 
-	go queue.RabbitConn.Consume(&common.CrawlerChannel, c)
+	go queue.RabbitConn.Consume(&queue.CrawlerChannel, c)
 
 	for {
 		select {
@@ -27,7 +27,7 @@ func RunServer() {
 			} else {
 				//如果是调试模式 等待 3s 再启动
 				if cm.Method == common.SCHEDULE_METHOD_DEBUG {
-					time.Sleep(time.Second * 1)
+					time.Sleep(time.Second * 3)
 				}
 				//运行调度器
 				go NewSchedule(cm).Run()

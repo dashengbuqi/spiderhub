@@ -101,9 +101,7 @@ func (this *collectService) CrawlerBegin(id int64, code string) (int64, error) {
 	if err != nil {
 		return debug_id, err
 	}
-	fmt.Println("进队列")
-	err = queue.RabbitConn.Publish(&common.CrawlerChannel, str)
-	fmt.Println(err)
+	err = queue.RabbitConn.Publish(&queue.CrawlerChannel, str)
 	return debug_id, err
 }
 
@@ -117,14 +115,13 @@ func (this *collectService) CrawlerHeart(id, debug_id, user_id int64) interface{
 	token := helper.NewToken(user_id, id, debug_id).Crawler().ToString()
 	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, token)
 	logTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, token)
-
 	lcnl := &queue.Channel{
 		Exchange:     "Crawlers",
 		ExchangeType: "direct",
 		RoutingKey:   logTable,
 		Reliable:     true,
 		Durable:      false,
-		AutoDelete:   true,
+		AutoDelete:   false,
 	}
 	dcnl := &queue.Channel{
 		Exchange:     "Crawlers",
@@ -132,33 +129,30 @@ func (this *collectService) CrawlerHeart(id, debug_id, user_id int64) interface{
 		RoutingKey:   dataTable,
 		Reliable:     true,
 		Durable:      false,
-		AutoDelete:   true,
+		AutoDelete:   false,
 	}
 
-	logOut := make(chan []byte, 5)
+	logOut := make(chan []byte)
 	dataOut := make(chan []byte)
 	var err error
 	go queue.RabbitConn.Consume(lcnl, logOut)
 	go queue.RabbitConn.Consume(dcnl, dataOut)
-	t := time.NewTicker(time.Second)
+	t := time.NewTicker(time.Second * 2)
 	for {
 		select {
 		case l := <-logOut:
-			if len(logList) == 5 {
-				goto Loop
-			}
 			var item common.LogLevel
 			err = json.Unmarshal(l, &item)
-			if err != nil {
-				goto Loop
+			if err == nil {
+				logList = append(logList, item)
 			}
-			logList = append(logList, item)
 			if item.Type == common.LOG_TYPE_FINISH {
 				goto Loop
 			}
 		case d := <-dataOut:
 			var item map[string]interface{}
 			err = json.Unmarshal(d, &item)
+			fmt.Println(item)
 			if err == nil {
 				dataList = append(dataList, item)
 			}
@@ -171,13 +165,13 @@ Loop:
 		Id      int64                    `json:"id"`
 		Status  int                      `json:"status"`
 		DebugId int64                    `json:"debug_id"`
-		Log     []common.LogLevel        `json:"log"`
+		Logs    []common.LogLevel        `json:"logs"`
 		Rows    []map[string]interface{} `json:"rows"`
 	}{
 		Id:      id,
 		Status:  model.Status,
 		DebugId: debug_id,
-		Log:     logList,
+		Logs:    logList,
 		Rows:    dataList,
 	}
 	return res
@@ -196,7 +190,7 @@ func (this *collectService) CrawlerEnd(id int64, debug_id int64, user_id int64) 
 		Abort:   true,
 	}
 	str, _ := json.Marshal(cm)
-	err := queue.RabbitConn.Publish(&common.CrawlerChannel, str)
+	err := queue.RabbitConn.Publish(&queue.CrawlerChannel, str)
 	if err != nil {
 		return err
 	}

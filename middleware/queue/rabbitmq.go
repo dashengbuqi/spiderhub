@@ -20,6 +20,24 @@ var (
 	RabbitConn *Base
 )
 
+var (
+	CrawlerChannel = Channel{
+		Exchange:     "Crawlers",
+		ExchangeType: "direct",
+		RoutingKey:   "Request",
+		Reliable:     true,
+		Durable:      false,
+	}
+
+	CleanerChannel = Channel{
+		Exchange:     "Cleaners",
+		ExchangeType: "direct",
+		RoutingKey:   "Request",
+		Reliable:     true,
+		Durable:      false,
+	}
+)
+
 type Conn struct {
 	Locker     sync.RWMutex
 	Connection *amqp.Connection
@@ -168,7 +186,7 @@ func (this *Base) Consume(c *Channel, out chan<- []byte) {
 	} else {
 		c = this.Channels[c.ChannelId]
 	}
-	queue, err := c.Channel.QueueDeclare("", false, false, true, false, nil)
+	queue, err := c.Channel.QueueDeclare("", false, false, false, false, nil)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 		return

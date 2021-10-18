@@ -3,7 +3,6 @@ package cleaner
 import (
 	"encoding/json"
 	"github.com/dashengbuqi/spiderhub"
-	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/internal/crawler"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
@@ -131,13 +130,13 @@ func (this *Cleaner) process(data map[string]interface{}) {
 	if len(result) > 0 {
 		_, primaryValue := this.searchPrimary(result)
 		if primaryValue == nil {
-			this.outLog <- helper.FmtLog(common.LOG_WARNING, "下载附件需要指定主键", common.LOG_LEVEL_WARN, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_WARNING, "下载附件需要指定主键", common.LOG_LEVEL_WARN, common.LOG_TYPE_SYSTEM)
 		} else {
 			for _, field := range this.rules[FIELDS].([]FieldStash) {
 				if field.Download {
 					err := NewDownload(result[field.Name].(map[bool]*common.FieldData)[field.Primary], primaryValue, field, this.token, this.container).Run()
 					if err != nil {
-						this.outLog <- helper.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+						this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 					}
 				}
 			}

@@ -176,7 +176,7 @@ func (this *Schedule) pushLogger(data []byte, debug bool) error {
 	if err != nil {
 		return err
 	}
-	res["app_id"] = this.inData.AppId.String()
+	res["app_id"] = this.inData.AppId
 	obj := spiderhub_data.NewCrawlerLog(this.logTable)
 	if _, err := obj.Build(res); err != nil {
 		return err

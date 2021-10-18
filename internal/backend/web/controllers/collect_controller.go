@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
 	"github.com/dashengbuqi/spiderhub/internal/backend/widgets"
@@ -101,9 +100,7 @@ func (this *CollectController) PostSave() string {
 func (this *CollectController) PostBegin() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	code := this.Ctx.FormValue("code")
-	fmt.Println(id, code)
 	debug_id, err := this.Service.CrawlerBegin(id, code)
-	fmt.Println(debug_id, err)
 	if err != nil {
 		return helper.ResultError(err.Error())
 	}

@@ -19,8 +19,6 @@ var (
 
 //启动蜘蛛
 func (this *crawlerPool) Start(key string, spd *Spider) {
-	mu.Lock()
-	defer mu.Unlock()
 	has := this.set(key, spd)
 	if has {
 		this.data[key].Run()
@@ -33,7 +31,7 @@ func (this *crawlerPool) Stop(key string) {
 	if has {
 		mu.Lock()
 		this.data[key].Stop()
-		this.delete(key)
+		this.Delete(key)
 		mu.Unlock()
 	}
 }
@@ -50,7 +48,7 @@ func (this *crawlerPool) set(key string, spd *Spider) bool {
 	_, ok := this.data[key]
 	return ok
 }
-func (this *crawlerPool) delete(key string) {
+func (this *crawlerPool) Delete(key string) {
 	if _, ok := this.data[key]; ok {
 		mu.Lock()
 		delete(this.data, key)

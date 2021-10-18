@@ -2,7 +2,6 @@ package cleaner
 
 import (
 	"github.com/dashengbuqi/spiderhub"
-	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/robertkrimen/otto"
 )
@@ -28,7 +27,7 @@ func (this *Extract) Run() map[string]interface{} {
 	defer func() {
 		p := recover()
 		if p != nil {
-			this.outLog <- helper.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+			this.outLog <- common.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
 	}()
 	result := make(map[string]interface{})

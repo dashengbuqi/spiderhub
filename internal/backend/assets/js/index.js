@@ -115,31 +115,37 @@
         }
         this.renderLogs = function (allData) {
             var str  = '';
-            for(var i in allData){
-                var row = JSON.parse(allData[i]);
-                allMessage.push(row);
-                if(row['type']==5){
+            for(var i in allData) {
+                // var row = JSON.parse(allData[i]);
+                allMessage.push(allData[i]);
+                console.log(allData[i].type)
+                if (allData[i].type == 5) {
                     clearInterval(_INTERVAL);
                     $(params.logArea).append('<p>系统已经停止.....</p>');
                     $(params.status).removeClass().addClass('status-stop').html('爬虫已经停止');
                     $(opeateParams.stop).hide();
-                       $(opeateParams.run).show();
-                      $(opeateParams.proxy).show();
-                      $(opeateParams.pause).hide();
-                       $(opeateParams.go).hide();
+                    $(opeateParams.run).show();
+                    $(opeateParams.proxy).show();
+                    $(opeateParams.pause).hide();
+                    $(opeateParams.go).hide();
                 }
-                str+='<p class="logs '+row['type']+'   '+row['level']+'"><i class="circle log-type_'+row['type']+'"></i><span class="log-error-type_'+row['level']+'">'+row['title']+':'+row['content']+'</span></p>';
+                if (allData[i].content != "") {
+                    str += '<p class="logs ' + allData[i].type + '   ' + allData[i].level + '"><i class="circle log-type_' + allData[i].type + '"></i><span class="log-error-type_' + allData[i].level + '">' + allData[i].title + ':' + allData[i].content + '</span></p>';
+                }
             }
-            $(params.logArea).append(str);
-            $(params.logArea)[0].scrollTop =  $(params.logArea)[0].scrollHeight;
+            if (str != "") {
+                $(params.logArea).append(str);
+                $(params.logArea)[0].scrollTop =  $(params.logArea)[0].scrollHeight;
+            }
         }
         this.renderResult = function (data) {
                  var str ='';
                   for(var i in data){
-                      str+='<p class="row">'+data[i]+'</p>';
+                      var strItem = JSON.stringify(data[i]);
+                      str+='<p class="row">【采集结果:】'+strItem+'</p>';
                   }
                   $(params.resultArea).append(str);
-            $(params.resultArea)[0].scrollTop =  $(params.resultArea)[0].scrollHeight;
+                  $(params.resultArea)[0].scrollTop =  $(params.resultArea)[0].scrollHeight;
         }
         this.getLogs = function () {
             _INTERVAL = setInterval(function () {
@@ -150,19 +156,17 @@
                    // data: target._getParams(),
                     success: function (res) {
                         var str ='';
-                        if(res.status==1 && res.data.status == 1){
-                            if(res.data.log==null&&res.data.rows==null){
-                                str ='<span class="waite"></span>';
-                            }else{
-                                str='';
-                            }
-                            if(str!=''){
-                                $(params.logArea).append(str);
-                            }
+                        if(res.data.logs==null&&res.data.rows==null){
+                            str ='<span class="waite"></span>';
+                        }
+                        if(str!=''){
+                            $(params.logArea).append(str);
+                        }
+                        if (res.data.logs != null) {
                             target.renderLogs(res.data.logs);
+                        }
+                        if (res.data.rows != null) {
                             target.renderResult(res.data.rows);
-                        }else{
-                            $(params.logArea).append('<p>爬虫正在启动中...</p>');
                         }
                     }
                 })

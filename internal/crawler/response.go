@@ -4,7 +4,6 @@ import (
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/gocolly/colly"
@@ -17,8 +16,8 @@ import (
 
 func (this *Spider) onResponse(r *colly.Response) {
 	var isAllow = false
-	if _, ok := this.params[ACCEPT_HTTP_STATUS]; ok {
-		for _, code := range this.params[ACCEPT_HTTP_STATUS].([]int) {
+	if _, ok := this.params[ACCEPT_HTTP_STATUS]; ok && len(this.params[ACCEPT_HTTP_STATUS].([]interface{})) > 0 {
+		for _, code := range this.params[ACCEPT_HTTP_STATUS].([]interface{}) {
 			if r.StatusCode == code {
 				isAllow = true
 				break
@@ -32,7 +31,11 @@ func (this *Spider) onResponse(r *colly.Response) {
 		return
 	}
 	if r.StatusCode == HTTP_STATUS_SUCCESS {
-
+		this.success(r)
+	} else if r.StatusCode == HTTP_STATUS_FORBIDDEN {
+		this.forbidden(r)
+	} else {
+		this.otherError(r)
 	}
 }
 
@@ -44,9 +47,9 @@ func (this *Spider) success(r *colly.Response) {
 	//入口
 	if _, ok := this.params[SCAN_URLS]; ok {
 		autoFindUrls := this.params[AUTOFIND_URLS].(bool)
-		if len(this.params[SCAN_URLS].([]interface{})) > 0 {
-			for _, su := range this.params[SCAN_URLS].([]interface{}) {
-				if su.(string) == r.Request.URL.String() {
+		if len(this.params[SCAN_URLS].([]string)) > 0 {
+			for _, su := range this.params[SCAN_URLS].([]string) {
+				if su == r.Request.URL.String() {
 					if autoFindUrls {
 						urls := helper.AutoFindLinkUrls(body)
 						if len(urls) > 0 {
@@ -120,10 +123,21 @@ func (this *Spider) success(r *colly.Response) {
 				this.autoFindURL(body, r)
 			}
 		}
-		// @todo 未完成
 		this.mu.Lock()
 		respData := this.extract(body, r.Request.URL.String())
-		fmt.Println(respData)
+		if len(respData) > 0 {
+			respData["targetUrl"] = map[bool]interface{}{
+				false: r.Request.URL.String(),
+			}
+			this.outData <- respData
+		}
+		if this.method == common.SCHEDULE_METHOD_DEBUG {
+			if this.runTimes > 10 {
+				this.outLog <- common.FmtLog(common.LOG_INFO, "调试模式结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+				this.abort = true
+			}
+			this.runTimes++
+		}
 		this.mu.Unlock()
 	}
 }
@@ -224,7 +238,7 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 						header.Add(k, v)
 					}
 				}
-				subBody := this.requestURL(full, requestMethod, header)
+				subBody := this.outSite(full, requestMethod, header)
 				if len(subBody) > 0 {
 					subData := make(map[string]map[bool]interface{})
 					for _, subField := range field.Children {
@@ -407,7 +421,7 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 }
 
 //请求外链
-func (this *Spider) requestURL(uri string, method string, header http.Header) string {
+func (this *Spider) outSite(uri string, method string, header http.Header) string {
 	req, _ := http.NewRequest(method, uri, nil)
 	if len(header) > 0 {
 		req.Header = header
@@ -428,7 +442,7 @@ func (this *Spider) autoFindURL(body string, r *colly.Response) {
 	urls := helper.AutoFindLinkUrls(body)
 	if len(urls) > 0 {
 		for _, url := range urls {
-			this.outLog <- common.FmtLog("发现新网页", url, common.LOG_LEVEL_INFO, common.LOG_TYPE_URL)
+			this.outLog <- common.FmtLog("信息", url, common.LOG_LEVEL_INFO, common.LOG_TYPE_URL)
 			if this.abort == false {
 				if strings.Contains(url, "http") || strings.Contains(url, "https") {
 					this.queue.AddURL(url)

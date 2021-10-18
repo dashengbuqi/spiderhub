@@ -46,7 +46,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 			RoutingKey:   logTable,
 			Reliable:     true,
 			Durable:      false,
-			AutoDelete:   true,
+			AutoDelete:   false,
 		},
 		dataQueue: &queue.Channel{
 			Exchange:     "Crawlers",
@@ -54,7 +54,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 			RoutingKey:   dataTable,
 			Reliable:     true,
 			Durable:      false,
-			AutoDelete:   true,
+			AutoDelete:   false,
 		},
 		rabbitConn: queue.RabbitConn,
 	}
@@ -62,21 +62,14 @@ func NewSchedule(cc common.Communication) *Schedule {
 
 func (this *Schedule) Run() {
 	defer func() {
-		this.container.Call(FUNC_BEFORE_EXIT, nil)
 		sp := collect.NewApplication()
 		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		isDebug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
-		err = this.pushLog(common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH), isDebug)
-		if err != nil {
-			spiderhub.Logger.Error("%v", err)
-		}
-		close(this.outLog)
-		close(this.outData)
 	}()
-	err := this.container.Set("Crawler", this.init)
+	fmt.Println("调度器开始执行")
+	err := this.mainRule.Container.Set("Crawler", this.init)
 	if err != nil {
 		this.outLog <- common.FmtLog(common.LOG_ERROR, "初始化失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		return
@@ -94,7 +87,7 @@ func (this *Schedule) Run() {
 		spiderhub.Logger.Error("%v", err.Error())
 	}
 	go func() {
-		err := this.mainRule.Init(this.inData.Content)
+		err := this.mainRule.InitBody(this.inData.Content)
 		if err != nil {
 			this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
@@ -104,13 +97,18 @@ func (this *Schedule) Run() {
 		select {
 		case m := <-this.outLog:
 			//已经结结束
-			if m == nil {
+			var res common.LogLevel
+			err := json.Unmarshal(m, &res)
+			if err != nil {
 				goto Loop
 			}
 			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
 			err = this.pushLog(m, debug)
 			if err != nil {
 				spiderhub.Logger.Error("%v", err.Error())
+			}
+			if res.Type == 5 {
+				goto Loop
 			}
 		case d := <-this.outData:
 			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
@@ -139,7 +137,6 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	token := helper.NewToken(this.inData.UserId, this.inData.AppId, this.inData.DebugId).Pool().ToString()
 	if Spool.Exist(token) {
 		this.outLog <- common.FmtLog(common.LOG_INFO, "任务正在执行中...", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
-		this.outLog <- nil
 		return otto.Value{}
 	}
 	sc := collect.NewApplication()
@@ -153,7 +150,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	wg.Add(1)
 	go func() {
 		defer func() {
-			Spool.Stop(token)
+			Spool.Delete(token)
 			wg.Done()
 		}()
 		//非调试模式且数据存储方式是重新
@@ -180,6 +177,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 
 func (this *Schedule) pushLog(body []byte, debug bool) error {
 	if debug {
+		fmt.Println(string(body))
 		//存入队列
 		err := this.rabbitConn.Publish(this.logQueue, body)
 		if err != nil {

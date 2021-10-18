@@ -3,6 +3,7 @@ package crawler
 import (
 	"crypto/tls"
 	"encoding/json"
+	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
@@ -61,8 +62,11 @@ func (this *Spider) Run() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		this.outLog <- nil
+		this.outLog <- common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_INFO, "", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
 	}()
+	//开始执行蜘蛛
+	fmt.Println("开始执行蜘蛛")
 	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
@@ -80,9 +84,9 @@ func (this *Spider) Run() {
 	sp.WithTransport(ts)
 	//不可重复抓取
 	sp.AllowURLRevisit = false
-	var timeout int64 = 30
+	var timeout int = 30
 	if _, ok := this.params[TIMEOUT]; ok {
-		timeout = this.params[TIMEOUT].(int64)
+		timeout = this.params[TIMEOUT].(int)
 	}
 	if _, ok := this.params[MAX_LIMIT]; ok {
 		this.maxLimit = this.params[MAX_LIMIT].(int)
@@ -92,9 +96,9 @@ func (this *Spider) Run() {
 	sp.SetRequestTimeout(timeouts)
 
 	//限速
-	var delay int64 = 1
+	var delay int = 1
 	if _, ok := this.params[DELAY]; ok {
-		delay = this.params[DELAY].(int64)
+		delay = this.params[DELAY].(int)
 	}
 	delays := time.Duration(delay) * time.Second
 	err = sp.Limit(
@@ -125,12 +129,12 @@ func (this *Spider) Run() {
 
 	//加载入口
 	if _, ok := this.params[SCAN_URLS]; ok {
-		for _, u := range this.params[SCAN_URLS].([]interface{}) {
-			this.outLog <- common.FmtLog(common.LOG_INFO, u.(string), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
-			uf, _ := url.QueryUnescape(u.(string))
+		for _, u := range this.params[SCAN_URLS].([]string) {
+			this.outLog <- common.FmtLog(common.LOG_INFO, u, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+			uf, _ := url.QueryUnescape(u)
 			err := this.queue.AddURL(uf)
 			if err != nil {
-				this.outLog <- common.FmtLog(common.LOG_ERROR, u.(string), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+				this.outLog <- common.FmtLog(common.LOG_ERROR, u, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			}
 		}
 	}

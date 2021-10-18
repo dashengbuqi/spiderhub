@@ -2,7 +2,6 @@ package common
 
 import (
 	"encoding/json"
-	"github.com/dashengbuqi/spiderhub/middleware/queue"
 	"time"
 )
 
@@ -62,24 +61,6 @@ const (
 	//设置前缀
 	PREFIX_CLEAN_LOG  = "cleanLog"
 	PREFIX_CLEAN_DATA = "cleanData"
-)
-
-var (
-	CrawlerChannel = queue.Channel{
-		Exchange:     "Crawlers",
-		ExchangeType: "direct",
-		RoutingKey:   "Request",
-		Reliable:     true,
-		Durable:      false,
-	}
-
-	CleanerChannel = queue.Channel{
-		Exchange:     "Cleaners",
-		ExchangeType: "direct",
-		RoutingKey:   "Request",
-		Reliable:     true,
-		Durable:      false,
-	}
 )
 
 //日志输出

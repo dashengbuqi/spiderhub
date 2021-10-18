@@ -299,7 +299,7 @@ func NewApplication() *Application {
 	}
 }
 
-func (this *Application) Init(body string) error {
+func (this *Application) InitBody(body string) error {
 	var err error
 	SelectorType, _ := this.Container.Object(`({Xpath:0,JsonPath:1,Regex:2})`)
 	err = this.Container.Set("SelectorType", SelectorType)
@@ -353,7 +353,7 @@ func (this *Application) unpackArray(key string) {
 	}
 	if res.IsObject() {
 		vals, _ := res.Export()
-		this.Rules[key] = vals.([]interface{})
+		this.Rules[key] = vals.([]string)
 	}
 }
 
@@ -426,7 +426,7 @@ func (this *Application) LazyLoad(oo *otto.Object) {
 		spiderhub.Logger.Error("%v", err)
 	}
 	//解析字段
-	if valField, err := this.Container.Get(FIELDS); err == nil {
+	if valField, err := this.oo.Get(FIELDS); err == nil {
 		fields := valField.Object().Keys()
 		if len(fields) > 0 {
 			var items []FieldStash
