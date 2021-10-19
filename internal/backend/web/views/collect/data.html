@@ -1,0 +1,66 @@
+<div id="mainPanel" region="center" style="margin-left: 3px;">
+    <div class="total" style="margin-bottom: 5px;">
+        <div class="Handel cf">
+            <div class="fl" style="margin-top:5px;margin-left: 20px">
+
+            </div>
+        </div>
+    </div>
+    <form id="datagridForm" method="post">
+        <table id="datagrid"></table>
+    </form>
+</div>
+<script type="text/javascript">
+    // 显示用户自定义搜索条件的标识符，true为显示
+    var needShowUserCondition = true;
+    var dataUrl = "/collect/data?id={{.id}}";
+    $(function() {
+        $('#datagrid').datagrid({
+            width : getDatagridWidth(),
+            height : getDatagridHeight(),
+            fitColumns : true,
+            nowrap : true,
+            autoRowHeight : false,
+            striped : true,
+            collapsible : true,
+            pagination : true,
+            url : dataUrl,
+            type : "post",
+            rownumbers : true,
+            idField : 'id',
+            checkOnSelect : false,
+            selectOnCheck : false,
+            singleSelect : true,
+            sortName:'id',
+            sortOrder:'desc',
+            onLoadSuccess : dataGridOnLoadSuccess,
+            columns : [
+                [
+                    {{$length := len .head}} {{if gt $length 0}}
+                        {{range .head}}
+                        {
+                            title: '{{.Alias}}', field: '{{.Name}}', width: $(this).width() * 0.05, align: 'center', halign: 'center',
+                            formatter:function (val,item) {
+                                if (typeof val === "string") {
+                                    var dd=val.replace(/<\/?.+?>/g,"");
+                                    return dd;
+                                }
+                                return val;
+                            }
+                        },
+                        {{end}}
+                    {{end}}
+                ]
+            ]
+        });
+    });
+    function reloadgrid() {
+        $('#datagrid').datagrid('load',{
+            'cat_id':$('#search-cate-id').combobox("getValue"),
+            'title' : $('#search-title').val(),
+            'start' : $('#search-start').val(),
+            'end' : $('#search-end').val(),
+            'status' : $("#search-status").combobox("getValue"),
+        });
+    }
+</script>

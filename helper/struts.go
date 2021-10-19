@@ -6,6 +6,7 @@ type ComboData struct {
 }
 
 type RequestParams struct {
+	Id       int64       `json:"id"`
 	Page     int         `json:"page"`
 	PageSize int         `json:"page_size"`
 	Sort     string      `json:"sort"`

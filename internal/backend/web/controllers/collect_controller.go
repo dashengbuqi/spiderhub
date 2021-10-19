@@ -127,6 +127,45 @@ func (this *CollectController) PutEnd() string {
 }
 
 //正在开始
-func (this *CollectController) PutStart() {
+func (this *CollectController) PutStart() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	err := this.Service.CrawlerStart(id)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("启动成功", nil)
+}
 
+func (this *CollectController) GetStatus() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	err := this.Service.CrawlerStatus(id)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("执行完成", nil)
+}
+
+func (this *CollectController) GetData() mvc.Result {
+	id, _ := this.Ctx.URLParamInt64("id")
+	th := this.Service.GetCrawlerHead(id)
+	return &mvc.View{
+		Name: "collect/data.html",
+		Data: iris.Map{"id": id, "head": th},
+	}
+}
+
+func (this *CollectController) PostData() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	page, _ := this.Ctx.PostValueInt("page")
+	pageSize, _ := this.Ctx.PostValueInt("rows")
+	sort := this.Ctx.PostValueDefault("sort", "id")
+	order := this.Ctx.PostValueDefault("order", "desc")
+	result := this.Service.GetCollectData(&helper.RequestParams{
+		Page:     page,
+		PageSize: pageSize,
+		Sort:     sort,
+		Order:    order,
+		Id:       id,
+	})
+	return result
 }

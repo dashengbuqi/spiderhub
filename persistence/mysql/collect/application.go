@@ -56,6 +56,7 @@ type Application struct {
 	Method         int    `json:"method"` //抓取方式(1重新抓取2更新3追加)
 	UiMethod       string `json:"ui_method" xorm:"-"`
 	ErrorInfo      string `json:"error_info"`
+	UiErrorInfo    string `json:"ui_error_info" xorm:"-"`
 	CrawlerContent string `json:"crawler_content"`
 	CleanContent   string `json:"clean_content"`
 	UpdatedAt      int64  `json:"updated_at"`
@@ -64,7 +65,7 @@ type Application struct {
 	UiCreatedAt    string `json:"ui_created_at" xorm:"-"`
 }
 
-func (this Application) TableName() string {
+func (Application) TableName() string {
 	return "collect_app"
 }
 
@@ -74,6 +75,10 @@ func (this *Application) callUI() {
 	this.UiStatus = statusArr[this.Status]
 	this.UiMethod = methodArr[this.Method]
 	this.UiStorage = storageArr[this.Storage]
+	this.UiErrorInfo = ""
+	if len(this.ErrorInfo) > 0 {
+		this.UiErrorInfo = ""
+	}
 }
 
 func (this *Application) GetStorageComboList() string {
@@ -120,6 +125,7 @@ func (this *Application) GetMethodComboList() string {
 
 type ApplicationImp interface {
 	ModifyStatus(id int64, state int) error
+	ModifyToken(id int64, crawler, clean string) error
 	GetRowByID(id int64) (*Application, error)
 	PostList(req *helper.RequestParams) string
 	ModifyItem(id int64, item *Application) error
@@ -135,6 +141,15 @@ func NewApplication() ApplicationImp {
 	return &application{
 		session: mysql.Engine[mysql.DATABASE_SPIDERHUB],
 	}
+}
+
+func (this *application) ModifyToken(id int64, crawler, clean string) error {
+	var item Application
+	item.CrawlerToken = crawler
+	item.CleanToken = clean
+	item.UpdatedAt = time.Now().Unix()
+	_, err := this.session.Where("id=?", id).Cols("crawler_token", "clean_token", "updated_at").Update(item)
+	return err
 }
 
 //更新爬虫状态

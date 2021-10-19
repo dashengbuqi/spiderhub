@@ -61,6 +61,9 @@ const (
 	//设置前缀
 	PREFIX_CLEAN_LOG  = "cleanLog"
 	PREFIX_CLEAN_DATA = "cleanData"
+
+	METHOD_DEBUG  = 0
+	METHOD_EXCUTE = 1
 )
 
 //日志输出
@@ -89,6 +92,12 @@ type FieldData struct {
 	Alias string      `json:"alias"`
 	Value interface{} `json:"value"`
 	Type  string      `json:"type"`
+}
+
+type TableHead struct {
+	Name  string `json:"name"`
+	Alias string `json:"alias"`
+	Type  string `json:"type"`
 }
 
 //格式化输出日志

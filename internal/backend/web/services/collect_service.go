@@ -7,6 +7,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"strconv"
 	"time"
@@ -15,12 +16,16 @@ import (
 type CollectService interface {
 	GetRowBy(id int64) *collect.Application
 	GetCollectList(post *helper.RequestParams) string
+	GetCollectData(post *helper.RequestParams) string
 	ModifyCollectItem(id int64, form map[string][]string) error
 	ModifyCrawler(id int64, content string) error
 	Remove(id int64) error
 	CrawlerBegin(id int64, code string) (int64, error)
 	CrawlerHeart(id int64, debug_id int64, user_id int64) interface{}
 	CrawlerEnd(id int64, debug_id int64, user_id int64) error
+	CrawlerStart(id int64) error
+	CrawlerStatus(id int64) error
+	GetCrawlerHead(id int64) []*common.TableHead
 }
 
 type collectService struct {
@@ -42,6 +47,20 @@ func (this *collectService) GetCollectList(post *helper.RequestParams) string {
 	result := this.repo.PostList(post)
 	return result
 }
+
+func (this *collectService) GetCollectData(post *helper.RequestParams) string {
+	if post.Id == 0 {
+		return "{\"total\":0,\"rows\":{}}"
+	}
+	item, _ := this.repo.GetRowByID(post.Id)
+	if len(item.CrawlerToken) == 0 {
+		return "{\"total\":0,\"rows\":{}}"
+	}
+	d := spiderhub_data.NewCrawlerData(item.CrawlerToken)
+	result := d.PostList(post)
+	return result
+}
+
 func (this *collectService) ModifyCrawler(id int64, content string) error {
 	if id == 0 {
 		return errors.New("请先创建采集任务")
@@ -73,12 +92,57 @@ func (this *collectService) ModifyCollectItem(id int64, form map[string][]string
 		Method:   methodInt,
 	})
 }
-
+func (this *collectService) CrawlerStatus(id int64) error {
+	ca := collect.NewApplication()
+	row, _ := ca.GetRowByID(id)
+	if row.Status == collect.STATUS_RUNNING {
+		return errors.New("正在执行中")
+	}
+	return nil
+}
 func (this *collectService) Remove(id int64) error {
 	if id == 0 {
 		return errors.New("暂不支持")
 	}
 	return this.repo.Remove(id)
+}
+
+//正式执行
+func (this *collectService) CrawlerStart(id int64) error {
+	if id == 0 {
+		return errors.New("缺少参数")
+	}
+	ca := collect.NewApplication()
+	row, _ := ca.GetRowByID(id)
+	if len(row.CrawlerContent) == 0 {
+		return errors.New("还没有爬虫规则,点击调试创建吧！")
+	}
+	cm := &common.Communication{
+		AppId:   row.Id,
+		UserId:  row.UserId,
+		DebugId: 0,
+		Method:  common.METHOD_EXCUTE,
+		Content: row.CrawlerContent,
+	}
+	str, err := json.Marshal(cm)
+	if err != nil {
+		return err
+	}
+	err = queue.RabbitConn.Publish(&queue.CrawlerChannel, str)
+	return err
+}
+
+func (this *collectService) GetCrawlerHead(id int64) []*common.TableHead {
+	af := collect.NewAppField()
+	item, _ := af.GetRowByID(collect.TARGET_CRAWLER, id)
+	var content []*common.TableHead
+	if len(item.Content) > 0 {
+		err := json.Unmarshal([]byte(item.Content), &content)
+		if err != nil {
+			return nil
+		}
+	}
+	return content
 }
 
 //调试开始
@@ -94,7 +158,7 @@ func (this *collectService) CrawlerBegin(id int64, code string) (int64, error) {
 		AppId:   id,
 		UserId:  0,
 		DebugId: debug_id,
-		Method:  0,
+		Method:  common.METHOD_DEBUG,
 		Content: code,
 	}
 	str, err := json.Marshal(cm)

@@ -67,6 +67,10 @@ func (this *Schedule) Run() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
+		err = sp.ModifyToken(this.inData.AppId, this.dataTable, this.logTable)
+		if err != nil {
+			spiderhub.Logger.Error("%v", err)
+		}
 	}()
 	err := this.mainRule.Container.Set("Crawler", this.init)
 	if err != nil {

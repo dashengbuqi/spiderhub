@@ -2,10 +2,13 @@ package spiderhub_data
 
 import (
 	"context"
+	"github.com/dashengbuqi/spiderhub"
+	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/middleware/mongo"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
+	"strings"
 )
 
 type primary struct {
@@ -63,6 +66,50 @@ func (this *CrawlerData) GetRowsBy(skip int64, limit int64) ([]interface{}, erro
 //删除表
 func (this *CrawlerData) Delete() error {
 	return this.collect.DropCollection(this.ctx)
+}
+
+func (this *CrawlerData) PostList(req *helper.RequestParams) string {
+	var query qmgo.QueryI
+
+	query = this.collect.Find(this.ctx, bson.M{})
+	result := this.assembleTable(query, req)
+	return result.ToJson()
+}
+
+func (this *CrawlerData) assembleTable(query qmgo.QueryI, req *helper.RequestParams) *helper.ResultEasyUItem {
+	pages := &helper.Pagination{
+		Page:     req.Page,
+		PageSize: req.PageSize,
+	}
+	var sortStr string
+
+	if len(req.Sort) > 0 {
+		sortKeys := strings.Split(req.Sort, ",")
+		sortValues := strings.Split(req.Order, ",")
+		for i, key := range sortKeys {
+			if sortValues[i] == "desc" {
+				sortStr += "-" + key + ","
+			} else {
+				sortStr += "-" + key + ","
+			}
+		}
+	}
+	var items []map[string]interface{}
+	limit := pages.GetLimit()
+	offset := pages.GetOffset()
+	sortBy := strings.Trim(sortStr, ",")
+	total, _ := query.Count()
+	err := query.Limit(int64(limit)).Skip(int64(offset)).Sort(sortBy).All(&items)
+	//total, err := query.OrderBy(sortBy).Limit(limit, offset).FindAndCount(&items)
+	if err != nil {
+		spiderhub.Logger.Error("%v", err.Error())
+	}
+
+	pages.Total = total
+	return &helper.ResultEasyUItem{
+		Pages:  pages,
+		Models: items,
+	}
 }
 
 func dataFormat(data map[string]interface{}) (*primary, interface{}) {

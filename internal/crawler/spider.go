@@ -153,16 +153,20 @@ func (this *Spider) Finish() {
 }
 
 func (this *Spider) initTable() {
-	var items []interface{}
+	var items []*common.TableHead
 	for _, field := range this.params[FIELDS].([]FieldStash) {
-		table := make(map[string]string)
 		alias := field.Alias
 		if len(alias) == 0 {
 			alias = field.Name
 		}
-		table = map[string]string{
-			"name":  field.Name,
-			"alias": alias,
+		tp := "string"
+		if len(field.Type) > 0 {
+			tp = field.Type
+		}
+		table := &common.TableHead{
+			Name:  field.Name,
+			Alias: alias,
+			Type:  tp,
 		}
 		items = append(items, table)
 	}

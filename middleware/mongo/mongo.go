@@ -10,7 +10,6 @@ var client *qmgo.Client
 var MongoEngine map[string]*qmgo.Database
 
 const (
-	MONGO_MAIN = "spider_main"
 	MONGO_DATA = "spider_data"
 )
 

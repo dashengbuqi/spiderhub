@@ -116,29 +116,29 @@ func (this *Spider) success(r *colly.Response) {
 					return
 				}
 			}
-		}
-		//内容页
-		if res, err := this.container.Call(FUNC_ON_PROCESS_CONTENT_PAGE, nil, body, this.queue); err == nil {
-			if state, _ := res.ToBoolean(); state == true {
-				this.autoFindURL(body, r)
+			//内容页
+			if res, err := this.container.Call(FUNC_ON_PROCESS_CONTENT_PAGE, nil, body, this.queue); err == nil {
+				if state, _ := res.ToBoolean(); state == true {
+					this.autoFindURL(body, r)
+				}
 			}
-		}
-		this.mu.Lock()
-		respData := this.extract(body, r.Request.URL.String())
-		if len(respData) > 0 {
-			respData["targetUrl"] = map[bool]interface{}{
-				false: r.Request.URL.String(),
+			this.mu.Lock()
+			respData := this.extract(body, r.Request.URL.String())
+			if len(respData) > 0 {
+				respData["targetUrl"] = map[bool]interface{}{
+					false: r.Request.URL.String(),
+				}
+				this.outData <- respData
 			}
-			this.outData <- respData
-		}
-		if this.method == common.SCHEDULE_METHOD_DEBUG {
-			if this.runTimes > 10 {
-				this.outLog <- common.FmtLog(common.LOG_INFO, "调试模式结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
-				this.abort = true
+			if this.method == common.SCHEDULE_METHOD_DEBUG {
+				if this.runTimes > 10 {
+					this.outLog <- common.FmtLog(common.LOG_INFO, "调试模式结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+					this.abort = true
+				}
+				this.runTimes++
 			}
-			this.runTimes++
+			this.mu.Unlock()
 		}
-		this.mu.Unlock()
 	}
 }
 

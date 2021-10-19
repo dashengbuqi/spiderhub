@@ -34,23 +34,24 @@
             onLoadSuccess : dataGridOnLoadSuccess,
             columns : [
                 [
-                    {title : '任务名称',field : 'title',width : $(this).width() * 0.12,align : 'center',halign:'center'},
-                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '任务名称',field : 'title',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.08,align : 'center',halign:'center'},
                     {title : '数据',field : 'ui_method',width : $(this).width() * 0.08,align : 'center',halign:'center'},
                     {title : '附件',field : 'ui_storage',width : $(this).width() * 0.08,align : 'center',halign:'center'},
-                    {title : '错误信息',field : 'error_info',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '错误信息',field : 'ui_error_info',width : $(this).width() * 0.05,align : 'center',halign:'center'},
                     {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
                         formatter:function (value,rec) {
                             return '<span class="color_'+rec.status+'">'+value+'</span>';
                         }},
                     {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.1,align : 'center',halign:'center'},
-                    {title : '操作',field : 'opt',width : $(this).width() * 0.12,align : 'center',halign:'center',
+                    {title : '操作',field : 'opt',width : $(this).width() * 0.15,align : 'center',halign:'center',
                         formatter : function(value, rec) {
                             var str = "";
-                            str += '<a href="javascript:void(0)" onclick="crawler(' + rec.id +');">采集</a>&nbsp;&nbsp;';
-                            str += '<a href="javascript:void(0)" onclick="clean(' + rec.id +');">清洗</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="start(' + rec.id +');" id="start-collect">开始采集</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="debug(' + rec.id +');">调试</a>&nbsp;&nbsp;';
                             str += '<a href="javascript:void(0)" onclick="update(' + rec.id +');">修改</a>&nbsp;&nbsp;';
                             str += '<a href="javascript:void(0)" onclick="del(' + rec.id + ');">删除</a> ';
+                            str += '<a href="javascript:void(0)" onclick="view(' + rec.id +',\''+rec.title+'\');">查看数据</a>&nbsp;&nbsp;';
                             return str;
                         }
                     }
@@ -58,8 +59,59 @@
             ]
         });
     });
-    function crawler(id) {
-        addTab("数据采集","/collect/debug?id="+id)
+
+    function view(id,title) {
+        addTab(title,"/collect/data?id="+id,"",true);
+    }
+    var _INTERVAL ='';
+    //存储数据
+    function start(id) {
+        var messagebody= showConfirm("数据采集","确认启动采集任务吗？",function(){
+            $.ajax({
+                url:"/collect/start?id="+id,
+                type:"put",
+                dataType:"json",
+                success : function(data) {
+                    if (data.status == 0) {
+                        $.messager.alert('温馨提示',data.msg,"error");
+                    } else {
+                        monitor(id)
+                    }
+                }
+            });
+        });
+        var messagebox=messagebody.parent();
+        var closeBox =messagebox.find(".panel-tool-close");
+        closeBox.unbind("click").bind("click",function(){
+            //closeMyWindow();
+            //  reloadDatagrid();
+            //  location.reload();
+            messagebox.siblings(".window-shadow").remove();
+            messagebox.siblings(".window-mask").remove();
+            messagebox.remove();
+        });
+    }
+    
+    function monitor(id) {
+        showProcess(true, '温馨提示', '数据采集中...');
+        _INTERVAL =  setInterval(function () {
+            $.ajax({
+                url:"/collect/status?id="+id,
+                type:"get",
+                dataType:"json",
+                success : function(data) {
+                    if (data.status == 1) {
+                        reloadDatagrid();
+                        showProcess(false);
+                        clearInterval(_INTERVAL);
+                    }
+                }
+            });
+        },2000);
+    }
+    
+    function debug(id) {
+        addTab("数据采集","/collect/debug?id="+id);
     }
 
     function add() {
