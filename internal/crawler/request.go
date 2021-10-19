@@ -28,7 +28,7 @@ func (this *Spider) onRequest(r *colly.Request) {
 		r.Abort()
 	}
 	queueCount, _ := this.queue.Size()
-	this.outLog <- common.FmtLog(common.LOG_INFO, "爬虫剩余"+strconv.Itoa(queueCount), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+	this.outLog <- common.FmtLog(common.LOG_INFO, "爬虫剩余:"+strconv.Itoa(queueCount), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 	//检查当前请求是否合法
 	var allowUrl bool
 	if len(this.params[DOMAIN].([]string)) > 0 {

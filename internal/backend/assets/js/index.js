@@ -116,9 +116,7 @@
         this.renderLogs = function (allData) {
             var str  = '';
             for(var i in allData) {
-                // var row = JSON.parse(allData[i]);
                 allMessage.push(allData[i]);
-                console.log(allData[i].type)
                 if (allData[i].type == 5) {
                     clearInterval(_INTERVAL);
                     $(params.logArea).append('<p>系统已经停止.....</p>');
@@ -182,18 +180,18 @@
               for(var i in allMessage){
                   var row =allMessage[i];
                   if(data['type']==0&&data['level']==0){
-                      str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                      str += '<p class="logs ' + row['type'] + ' ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                   }else if(data['type']==0&&data['level']!=0){
                       if(allMessage[i]['level']==data['level']){
-                          str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                          str += '<p class="logs ' + row['type'] + ' ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                       }
                   }else if(data['log_type']!=0&&data['level']==0){
                       if(allMessage[i]['log_type']==data['type']){
-                          str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                          str += '<p class="logs ' + row['type'] + ' ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                       }
                   }else{
                        if((allMessage[i]['type']==data['type'])&&allMessage[i]['level']==data['level']){
-                           str += '<p class="logs ' + row['type'] + '   ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type_' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
+                           str += '<p class="logs ' + row['type'] + ' ' + row['level'] + '"><i class="circle log-type_' + row['type'] + '"></i><span class="log-error-type' + row['level'] + '">' + row['title'] + ':' + row['content'] + '</span></p>';
                        }
                   }
               }

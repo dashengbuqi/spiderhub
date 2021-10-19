@@ -1,3 +1,4 @@
+
 <link rel="stylesheet" type="text/css" href="/static/css/index.css?t=1">
 <link rel="stylesheet" type="text/css" href="/static/codemirror/lib/codemirror.css">
 <link rel="stylesheet" type="text/css" href="/static/font-awesome/css/font-awesome.css">
@@ -82,11 +83,11 @@
                     <ul class="pull-right">
                         <li>
                             <select style="width: 80px" id="log-error-type">
-                                <option value="0" class="log-error-type_0">全部</option>
-                                <option value="1" class="log-error-type_1">调试</option>
-                                <option value="2" class="log-error-type_2">信息</option>
-                                <option value="3" class="log-error-type_3">警告</option>
-                                <option value="4" class="log-error-type_4">错误</option>
+                                <option value="0" class="log-error-type0">全部</option>
+                                <option value="1" class="log-error-type1">调试</option>
+                                <option value="2" class="log-error-type2">信息</option>
+                                <option value="3" class="log-error-type3">警告</option>
+                                <option value="4" class="log-error-type4">错误</option>
                             </select>
                         </li>
                     </ul>
@@ -126,7 +127,7 @@
 <script type="text/javascript" src="/static/dialog/jquery.artDialog.js"></script>
 <script type="text/javascript" src="/static/dialog/jquery.artDialog.extend.js"></script>
 <script type="text/javascript" src="/static/dialog/artDialog.iframeTools.js"></script>
-<script src="/static/js/index.js?t=13"></script>
+<script src="/static/js/index.js?t=14"></script>
 <script type="text/javascript">
     var status = {{.status}}
     var app_id = {{.id}}
@@ -258,5 +259,39 @@
     }
     .log_4{
         color:red;
+    }
+
+    .log-type_1{
+        background-color: #99dcf3;;
+    }
+    .log-type_2{
+        background-color: white;
+    }
+    .log-type_3{
+        background-color: #ff9900;
+    }
+    .log-type_4{
+        background-color: red;
+    }
+    .log-error-type1{
+        color:#9d55b8;
+    }
+    .log-error-type2{
+        color: #f4c600;
+    }
+    .log-error-type3{
+        color: #eb4f38
+    }
+    .log-error-type4{
+        color: #00bb9c
+    }
+
+    .disabled_1{
+        background-color: #ccc!important;
+        border: 1px solid #ccc!important;
+    }
+    .disabled_1:hover{
+        background-color: #ccc!important;
+        border: 1px solid #ccc!important;
     }
 </style>

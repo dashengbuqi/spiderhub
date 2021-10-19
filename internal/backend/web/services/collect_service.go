@@ -121,7 +121,7 @@ func (this *collectService) CrawlerHeart(id, debug_id, user_id int64) interface{
 		RoutingKey:   logTable,
 		Reliable:     true,
 		Durable:      false,
-		AutoDelete:   false,
+		AutoDelete:   true,
 	}
 	dcnl := &queue.Channel{
 		Exchange:     "Crawlers",
@@ -129,7 +129,7 @@ func (this *collectService) CrawlerHeart(id, debug_id, user_id int64) interface{
 		RoutingKey:   dataTable,
 		Reliable:     true,
 		Durable:      false,
-		AutoDelete:   false,
+		AutoDelete:   true,
 	}
 
 	logOut := make(chan []byte)
@@ -152,7 +152,6 @@ func (this *collectService) CrawlerHeart(id, debug_id, user_id int64) interface{
 		case d := <-dataOut:
 			var item map[string]interface{}
 			err = json.Unmarshal(d, &item)
-			fmt.Println(item)
 			if err == nil {
 				dataList = append(dataList, item)
 			}

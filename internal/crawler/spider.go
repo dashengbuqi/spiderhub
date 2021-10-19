@@ -3,7 +3,6 @@ package crawler
 import (
 	"crypto/tls"
 	"encoding/json"
-	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
@@ -66,7 +65,6 @@ func (this *Spider) Run() {
 		this.outLog <- common.FmtLog(common.LOG_INFO, "", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
 	}()
 	//开始执行蜘蛛
-	fmt.Println("开始执行蜘蛛")
 	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)

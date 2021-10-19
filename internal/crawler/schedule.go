@@ -46,7 +46,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 			RoutingKey:   logTable,
 			Reliable:     true,
 			Durable:      false,
-			AutoDelete:   false,
+			AutoDelete:   true,
 		},
 		dataQueue: &queue.Channel{
 			Exchange:     "Crawlers",
@@ -54,7 +54,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 			RoutingKey:   dataTable,
 			Reliable:     true,
 			Durable:      false,
-			AutoDelete:   false,
+			AutoDelete:   true,
 		},
 		rabbitConn: queue.RabbitConn,
 	}
@@ -68,7 +68,6 @@ func (this *Schedule) Run() {
 			spiderhub.Logger.Error("%v", err)
 		}
 	}()
-	fmt.Println("调度器开始执行")
 	err := this.mainRule.Container.Set("Crawler", this.init)
 	if err != nil {
 		this.outLog <- common.FmtLog(common.LOG_ERROR, "初始化失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
@@ -177,7 +176,6 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 
 func (this *Schedule) pushLog(body []byte, debug bool) error {
 	if debug {
-		fmt.Println(string(body))
 		//存入队列
 		err := this.rabbitConn.Publish(this.logQueue, body)
 		if err != nil {

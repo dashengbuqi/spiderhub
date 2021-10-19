@@ -27,6 +27,7 @@ var (
 		RoutingKey:   "Request",
 		Reliable:     true,
 		Durable:      false,
+		AutoDelete:   true,
 	}
 
 	CleanerChannel = Channel{
@@ -35,6 +36,7 @@ var (
 		RoutingKey:   "Request",
 		Reliable:     true,
 		Durable:      false,
+		AutoDelete:   true,
 	}
 )
 

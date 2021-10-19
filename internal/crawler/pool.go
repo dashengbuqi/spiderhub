@@ -31,15 +31,14 @@ func (this *crawlerPool) Stop(key string) {
 	if has {
 		mu.Lock()
 		this.data[key].Stop()
-		this.Delete(key)
 		mu.Unlock()
 	}
 }
 func (this *crawlerPool) Exist(key string) bool {
 	mu.RLock()
 	defer mu.RUnlock()
-	_, ok := this.data[key]
-	return ok
+	_, has := this.data[key]
+	return has
 }
 func (this *crawlerPool) set(key string, spd *Spider) bool {
 	mu.Lock()
