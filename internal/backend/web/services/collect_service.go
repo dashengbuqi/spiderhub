@@ -56,7 +56,8 @@ func (this *collectService) GetCollectData(post *helper.RequestParams) string {
 	if len(item.CrawlerToken) == 0 {
 		return "{\"total\":0,\"rows\":{}}"
 	}
-	d := spiderhub_data.NewCrawlerData(item.CrawlerToken)
+	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, item.CrawlerToken)
+	d := spiderhub_data.NewCollectData(dataTable)
 	result := d.PostList(post)
 	return result
 }
@@ -104,7 +105,30 @@ func (this *collectService) Remove(id int64) error {
 	if id == 0 {
 		return errors.New("暂不支持")
 	}
-	return this.repo.Remove(id)
+	//删除对应的数据
+	item, _ := this.repo.GetRowByID(id)
+	if item.Id > 0 {
+		if len(item.CrawlerToken) > 0 {
+			dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, item.CrawlerToken)
+			cd := spiderhub_data.NewCollectData(dataTable)
+			cd.Delete()
+			//日志表
+			logTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, item.CrawlerToken)
+			cc := spiderhub_data.NewCollectLog(logTable)
+			cc.Delete()
+		}
+		if len(item.CleanToken) > 0 {
+			dataTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, item.CleanToken)
+			cd := spiderhub_data.NewCollectData(dataTable)
+			cd.Delete()
+			//日志表
+			logTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_LOG, item.CleanToken)
+			cc := spiderhub_data.NewCollectLog(logTable)
+			cc.Delete()
+		}
+		return this.repo.Remove(id)
+	}
+	return errors.New("采集数据不存在")
 }
 
 //正式执行

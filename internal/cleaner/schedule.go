@@ -145,7 +145,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			spiderhub.Logger.Error("%v", err)
 		}
 		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == collect.METHOD_INSERT {
-			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
+			dataObj := spiderhub_data.NewCollectData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
 				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
@@ -225,7 +225,7 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 			Value: time.Now().Unix(),
 		},
 	}
-	obj := spiderhub_data.NewCrawlerData(this.dataTable)
+	obj := spiderhub_data.NewCollectData(this.dataTable)
 	if err := obj.Build(data, this.bean.Method); err != nil {
 		return err
 	}

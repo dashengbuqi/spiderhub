@@ -16,20 +16,20 @@ type primary struct {
 	value interface{}
 }
 
-type CrawlerData struct {
+type CollectData struct {
 	collect *qmgo.Collection
 	ctx     context.Context
 }
 
-func NewCrawlerData(table string) *CrawlerData {
-	return &CrawlerData{
+func NewCollectData(table string) *CollectData {
+	return &CollectData{
 		collect: mongo.MongoEngine[mongo.MONGO_DATA].Collection(table),
 		ctx:     context.Background(),
 	}
 }
 
 //创建数据
-func (this *CrawlerData) Build(data map[string]interface{}, method int) error {
+func (this *CollectData) Build(data map[string]interface{}, method int) error {
 	//格式化数据
 	pm, ndata := dataFormat(data)
 	//需要更新则检查是否存在
@@ -52,23 +52,23 @@ func (this *CrawlerData) Build(data map[string]interface{}, method int) error {
 }
 
 //删除表中数据
-func (this *CrawlerData) RemoveRows() error {
+func (this *CollectData) RemoveRows() error {
 	_, err := this.collect.RemoveAll(this.ctx, bson.M{})
 	return err
 }
 
-func (this *CrawlerData) GetRowsBy(skip int64, limit int64) ([]interface{}, error) {
+func (this *CollectData) GetRowsBy(skip int64, limit int64) ([]interface{}, error) {
 	var items []interface{}
 	err := this.collect.Find(this.ctx, bson.M{}).Skip(skip).Limit(limit).All(&items)
 	return items, err
 }
 
 //删除表
-func (this *CrawlerData) Delete() error {
+func (this *CollectData) Delete() error {
 	return this.collect.DropCollection(this.ctx)
 }
 
-func (this *CrawlerData) PostList(req *helper.RequestParams) string {
+func (this *CollectData) PostList(req *helper.RequestParams) string {
 	var query qmgo.QueryI
 
 	query = this.collect.Find(this.ctx, bson.M{})
@@ -76,7 +76,7 @@ func (this *CrawlerData) PostList(req *helper.RequestParams) string {
 	return result.ToJson()
 }
 
-func (this *CrawlerData) assembleTable(query qmgo.QueryI, req *helper.RequestParams) *helper.ResultEasyUItem {
+func (this *CollectData) assembleTable(query qmgo.QueryI, req *helper.RequestParams) *helper.ResultEasyUItem {
 	pages := &helper.Pagination{
 		Page:     req.Page,
 		PageSize: req.PageSize,

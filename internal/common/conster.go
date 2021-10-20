@@ -55,12 +55,12 @@ const (
 	LOG_TYPE_HANDLEND_URL
 
 	//设置前缀
-	PREFIX_CRAWL_LOG  = "crawlLog"
-	PREFIX_CRAWL_DATA = "crawlData"
+	PREFIX_CRAWL_LOG  = "CollectorLog"
+	PREFIX_CRAWL_DATA = "CollectorData"
 
 	//设置前缀
-	PREFIX_CLEAN_LOG  = "cleanLog"
-	PREFIX_CLEAN_DATA = "cleanData"
+	PREFIX_CLEAN_LOG  = "CleanLog"
+	PREFIX_CLEAN_DATA = "CleanData"
 
 	METHOD_DEBUG  = 0
 	METHOD_EXCUTE = 1

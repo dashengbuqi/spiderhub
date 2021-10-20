@@ -24,18 +24,14 @@ type Schedule struct {
 	bean       *collect.Application        //数据持久化实例
 	container  *otto.Otto                  //JS规则识别容器
 	mainRule   *Application
-	dataTable  string
-	logTable   string
 }
 
 func NewSchedule(cc common.Communication) *Schedule {
 	cc.Token = helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Crawler().ToString()
-	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, cc.Token)
-	logTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, cc.Token)
+	dataKey := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, cc.Token)
+	logKey := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, cc.Token)
 	return &Schedule{
 		inData:    &cc,
-		dataTable: dataTable,
-		logTable:  logTable,
 		outLog:    make(chan []byte),
 		outData:   make(chan map[string]interface{}),
 		mainRule:  NewApplication(),
@@ -43,7 +39,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 		logQueue: &queue.Channel{
 			Exchange:     "Crawlers",
 			ExchangeType: "direct",
-			RoutingKey:   logTable,
+			RoutingKey:   logKey,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -51,7 +47,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 		dataQueue: &queue.Channel{
 			Exchange:     "Crawlers",
 			ExchangeType: "direct",
-			RoutingKey:   dataTable,
+			RoutingKey:   dataKey,
 			Reliable:     true,
 			Durable:      false,
 			AutoDelete:   true,
@@ -67,7 +63,7 @@ func (this *Schedule) Run() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		err = sp.ModifyToken(this.inData.AppId, this.dataTable, this.logTable)
+		err = sp.ModifyToken(this.inData.AppId, this.inData.Token)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -158,13 +154,15 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 		}()
 		//非调试模式且数据存储方式是重新
 		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == collect.METHOD_INSERT {
-			dataObj := spiderhub_data.NewCrawlerData(this.dataTable)
+			dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, this.inData.Token)
+			dataObj := spiderhub_data.NewCollectData(dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
 				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 			//清空日志
-			logObj := spiderhub_data.NewCrawlerLog(this.logTable)
+			logTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, this.inData.Token)
+			logObj := spiderhub_data.NewCollectLog(logTable)
 			err = logObj.RemoveRows()
 			if err != nil {
 				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
@@ -194,7 +192,8 @@ func (this *Schedule) pushLog(body []byte, debug bool) error {
 		return err
 	}
 	res["app_id"] = this.inData.AppId
-	obj := spiderhub_data.NewCrawlerLog(this.logTable)
+	logDoc := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, this.inData.Token)
+	obj := spiderhub_data.NewCollectLog(logDoc)
 	if _, err := obj.Build(res); err != nil {
 		return err
 	}
@@ -230,7 +229,8 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 	data["created_at"] = map[bool]interface{}{
 		false: time.Now().Unix(),
 	}
-	obj := spiderhub_data.NewCrawlerData(this.dataTable)
+	dataDoc := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, this.inData.Token)
+	obj := spiderhub_data.NewCollectData(dataDoc)
 	if err := obj.Build(data, this.bean.Method); err != nil {
 		return err
 	}

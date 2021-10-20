@@ -65,7 +65,7 @@ func (this *Cleaner) Run() {
 	var limit int64 = 20
 	var skip int64
 	lost := make(map[string]bool)
-	cd := spiderhub_data.NewCrawlerData(this.dataTable)
+	cd := spiderhub_data.NewCollectData(this.dataTable)
 	for {
 		//中断执行
 		if this.abort == true {

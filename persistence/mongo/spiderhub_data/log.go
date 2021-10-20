@@ -8,20 +8,20 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-type CrawlerLog struct {
+type CollectLog struct {
 	collect *qmgo.Collection
 	ctx     context.Context
 }
 
-func NewCrawlerLog(table string) *CrawlerLog {
-	return &CrawlerLog{
+func NewCollectLog(table string) *CollectLog {
+	return &CollectLog{
 		collect: mongo.MongoEngine[mongo.MONGO_DATA].Collection(table),
 		ctx:     context.TODO(),
 	}
 }
 
 //创建数据
-func (this *CrawlerLog) Build(doc interface{}) (primitive.ObjectID, error) {
+func (this *CollectLog) Build(doc interface{}) (primitive.ObjectID, error) {
 	res, err := this.collect.InsertOne(this.ctx, doc)
 	if err != nil {
 		return primitive.NewObjectID(), err
@@ -30,12 +30,12 @@ func (this *CrawlerLog) Build(doc interface{}) (primitive.ObjectID, error) {
 }
 
 //删除表中数据
-func (this *CrawlerLog) RemoveRows() error {
+func (this *CollectLog) RemoveRows() error {
 	_, err := this.collect.RemoveAll(this.ctx, bson.M{})
 	return err
 }
 
 //删除表
-func (this *CrawlerLog) Delete() error {
+func (this *CollectLog) Delete() error {
 	return this.collect.DropCollection(this.ctx)
 }
