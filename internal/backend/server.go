@@ -37,6 +37,8 @@ func Run() {
 	mvc.Configure(app.Party("/user"), user)
 	//采集
 	mvc.Configure(app.Party("/collect"), collect)
+	//清洗
+	mvc.Configure(app.Party("/clean"), clean)
 
 	err = app.Run(iris.Addr(params["Addr"].(string)), iris.WithConfiguration(
 		iris.Configuration{
@@ -64,6 +66,12 @@ func collect(app *mvc.Application) {
 	cs := services.NewCollectService()
 	app.Register(cs)
 	app.Handle(new(controllers.CollectController))
+}
+
+func clean(app *mvc.Application) {
+	cs := services.NewCleanService()
+	app.Register(cs)
+	app.Handle(new(controllers.CleanController))
 }
 
 func menu(app *mvc.Application) {

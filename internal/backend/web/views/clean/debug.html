@@ -1,0 +1,297 @@
+
+<link rel="stylesheet" type="text/css" href="/static/css/index.css?t=1">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/lib/codemirror.css">
+<link rel="stylesheet" type="text/css" href="/static/font-awesome/css/font-awesome.css">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/theme/monokai.css">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/addon/dialog/dialog.css">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/addon/search/matchesonscrollbar.css">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/addon/fold/foldgutter.css">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/addon/lint/lint.css">
+<link rel="stylesheet" type="text/css" href="/static/codemirror/addon/hint/show-hint.css">
+<link rel="stylesheet" type="text/css" href="/static/css/jqx.base.css">
+<link rel="stylesheet" type="text/css" href="/static/dialog/ui_art_dialog.css">
+
+<div  class="editor codemirror-editor-index clearfix" id="mainSplitter" style="width: 100%">
+    <!-- 左 -->
+    <div class="editor-left left">
+        <div class="editor-scrollBar editor-toolbar">
+            <ul class="clearfix">
+                <li><a  href="javascript:;" class="btn" id="save-code"><i class="fa fa-save"></i>保存</a></li>
+                <li>
+                    <select style="width:100px;" id="font-code">
+                        <option value="">默认</option>
+                        <option value="smaller">小字体</option>
+                        <option value="medium">中字体</option>
+                        <option value="large">大字体</option>
+                        <option value="x-large">超大字体</option>
+                    </select>
+                </li>
+                <li><a  href="javascript:;" class="btn" id="format-code"><i class="fa fa-code"></i>格式化</a></li>
+            </ul>
+        </div>
+        <div class="editor-content">
+            <textarea id="editor-codemirror" name="editor">{{.content}}</textarea>
+        </div>
+    </div>
+    <!-- 右 -->
+    <div class="editor-right left">
+        <div style="border: none;" id="rightSplitter">
+            <div class="editor-right-top">
+                <div class="editor-toolbar clearfix">
+                    <ul class="left">
+                        <li>
+                            <span >&nbsp;爬取结果</span>
+                            <span class="">测试状态:&nbsp;</span>
+                            <span id="status" class="status-pause">未启动</span>
+                        </li>
+                    </ul>
+                    <ul class="right">
+                        <li>
+                            <a class="btn btn-clear-all" id="clear-result">
+                                <i class="fa fa-times-circle"></i> 清空结果
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="editor-result" id="result-area">
+
+                </div>
+            </div>
+            <div class="editor-right-bottom">
+                <div class="editor-toolbar">
+                    <ul class="">
+                        <li class="run">
+                            <a class="btn bug-btn disabled_{{.status}}"><i class="fa fa-bug"></i> 测试</a>
+                        </li>
+                        <li  style="display: none;" class="pause">
+                            <a class="btn">
+                                <i class="fa fa-pause"></i> 暂停</a>
+                        </li>
+                        <li style="display: none;" class="go">
+                            <a class="btn">
+                                <i class="fa fa-play"></i> 继续</a>
+                        </li>
+                        <li style="display: none;" class="stop">
+                            <a class="btn" id="btn-stop">
+                                <i class="fa fa-stop"></i> 停止</a>
+                        </li>
+                        <li style="display: none;" class="clear">
+                            <a class="btn">
+                                <i class="fa fa-trash"></i> 清空</a>
+                        </li>
+                    </ul>
+                    <ul class="pull-right">
+                        <li>
+                            <select style="width: 80px" id="log-error-type">
+                                <option value="0" class="log-error-type0">全部</option>
+                                <option value="1" class="log-error-type1">调试</option>
+                                <option value="2" class="log-error-type2">信息</option>
+                                <option value="3" class="log-error-type3">警告</option>
+                                <option value="4" class="log-error-type4">错误</option>
+                            </select>
+                        </li>
+                    </ul>
+                </div>
+                <div class="editor-result" id="log-area"></div>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="/static/jquery/dist/jquery.js"></script>
+<script type="text/javascript" src="/static/js/jqxcore.js"></script>
+<script type="text/javascript" src="/static/js/jquery.splitter.js"></script>
+<script type="text/javascript" src="/static/jshint/dist/jshint.js"></script>
+<script type="text/javascript" src="/static/codemirror/lib/codemirror.js"></script>
+<script type="text/javascript" src="/static/codemirror/mode/javascript/javascript.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/dialog/dialog.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/search/searchcursor.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/search/search.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/scroll/annotatescrollbar.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/search/matchesonscrollbar.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/search/jump-to-line.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/selection/active-line.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/fold/foldcode.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/fold/brace-fold.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/fold/indent-fold.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/fold/foldgutter.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/comment/comment.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/edit/closebrackets.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/edit/matchbrackets.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/search/match-highlighter.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/lint/lint.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/lint/javascript-lint.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/hint/show-hint.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/hint/javascript-hint.js"></script>
+<script type="text/javascript" src="/static/codemirror/addon/scroll/simplescrollbars.js"></script>
+<script type="text/javascript" src="/static/js-beautify/js/lib/beautify.js"></script>
+<script type="text/javascript" src="/static/dialog/jquery.artDialog.js"></script>
+<script type="text/javascript" src="/static/dialog/jquery.artDialog.extend.js"></script>
+<script type="text/javascript" src="/static/dialog/artDialog.iframeTools.js"></script>
+<script src="/static/js/clean.js?t=1"></script>
+<script type="text/javascript">
+    var status = {{.status}}
+    var app_id = {{.id}}
+    var my = document.getElementById('editor-codemirror');
+    var editor = CodeMirror.fromTextArea(my,{
+        tabSize: 4,
+        cursorScrollMargin:10,
+        indentWithTabs: true,
+        textWrapping: true,
+        mode: 'text/javascript',
+        theme: 'monokai',
+        matchBrackets: true,
+        autoRefresh:true,
+        showHint:true,
+        styleActiveLine: true,
+        lineWrapping:true,
+        lineNumbers: true,
+        lint: true,
+        foldGutter: true,
+        showCursorWhenSelecting:true,
+        autoCloseBrackets: true,
+        highlightSelectionMatches: {showToken: /\w/, annotateScrollbar: true},
+        gutters: ["CodeMirror-lint-markers","CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+        hintOptions: {completeSingle: false}
+    });
+    editor.on('cursorActivity', function () {
+        editor.showHint()
+    });
+    editor.on("keyup", function (cm, event) {
+        if(cm.addonKeyCode === event.keyCode){
+            cm.addonKeyCode = null;
+            return;
+        }else if(event.ctrlKey || event.metaKey){
+            return;
+        }
+        var isDigit = (event.keyCode >= 48 && event.keyCode <= 57) ||
+            (event.keyCode >= 96 && event.keyCode <= 105);
+        var isLetter = (event.keyCode >= 65 && event.keyCode <= 90);
+        var isValidChar = event.keyCode == 110 ||
+            event.keyCode == 190;
+        if( isLetter ||
+            ((isDigit || isValidChar) && !event.shiftKey)
+        ){
+            var cur = cm.getCursor();
+            var token = cm.getTokenAt(cur);
+            if(token.type === "comment" ){
+                //Do nothing in comment
+                return;
+            }
+            if ((!cm.state.completionActive || token.string == '.' || (token.start + 1) == cur.ch)) {
+                var hint = "1234-"+cm.options.mode;
+                var options = {
+                    hint: CodeMirror.hint[hint],
+                    completeSingle: false
+                };
+                cm.showHint(options);
+            }
+        }
+    });
+</script>
+<style type="text/css">
+    .CodeMirror{
+        font-size : 15px;
+        line-height : 150%;
+        width: 100%;
+        background: #272822;
+        height: 100%;
+        color: #f8f8f2;
+        padding-top: 27px;
+    }
+    .panel-header, .panel-body{
+        border-color: #000000;
+    }
+    .status_3,.status_1{
+        color:green;
+    }
+    .circle{
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .editor-result{
+        overflow-y: scroll;
+    }
+    .status_-1{
+        color:red;
+    }
+    .status_0{
+        color:darkseagreen;
+    }
+    .status_2{
+        color:yellow;
+    }
+    .waite{
+        width: 2px;
+        height: 2px;
+        display: inline-block;
+        background-color: white;
+        border-radius: 50%;
+        vertical-align: middle;
+        margin: 10px 2px;
+    }
+    .logs{
+        line-height: 18px;
+        margin: 5px 0;
+        position: relative;
+    }
+    .logs span{
+        width: 100%;
+        display: inline-block;
+        margin-left: 20px;
+        word-break: break-all;
+    }
+    .logs i{
+        margin-right: 6px;
+        position: absolute;
+        top: 3px;
+    }
+    .log_1{
+        color:#99dcf3;
+    }
+    .log_2{
+        color:white;
+    }
+    .log_3{
+        color:#ff9900;
+    }
+    .log_4{
+        color:red;
+    }
+
+    .log-type_1{
+        background-color: #99dcf3;;
+    }
+    .log-type_2{
+        background-color: white;
+    }
+    .log-type_3{
+        background-color: #ff9900;
+    }
+    .log-type_4{
+        background-color: red;
+    }
+    .log-error-type1{
+        color:#9d55b8;
+    }
+    .log-error-type2{
+        color: #f4c600;
+    }
+    .log-error-type3{
+        color: #eb4f38
+    }
+    .log-error-type4{
+        color: #00bb9c
+    }
+
+    .disabled_1{
+        background-color: #ccc!important;
+        border: 1px solid #ccc!important;
+    }
+    .disabled_1:hover{
+        background-color: #ccc!important;
+        border: 1px solid #ccc!important;
+    }
+</style>

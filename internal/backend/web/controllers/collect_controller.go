@@ -126,7 +126,7 @@ func (this *CollectController) PutEnd() string {
 	return helper.ResultSuccess("调试正在终止...", nil)
 }
 
-//正在开始
+//正式开始
 func (this *CollectController) PutStart() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	err := this.Service.CrawlerStart(id)

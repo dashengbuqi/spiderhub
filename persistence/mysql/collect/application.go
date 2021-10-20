@@ -131,6 +131,7 @@ type ApplicationImp interface {
 	ModifyItem(id int64, item *Application) error
 	Remove(id int64) error
 	ModifyCrawlerContent(id int64, content string) error
+	ModifyCleanContent(id int64, content string) error
 }
 
 type application struct {
@@ -245,5 +246,13 @@ func (this *application) ModifyCrawlerContent(id int64, content string) error {
 	item.CrawlerContent = content
 	item.UpdatedAt = time.Now().Unix()
 	_, err := this.session.Where("id =?", id).Cols("crawler_content", "updated_at").Update(item)
+	return err
+}
+
+func (this *application) ModifyCleanContent(id int64, content string) error {
+	var item Application
+	item.CleanContent = content
+	item.UpdatedAt = time.Now().Unix()
+	_, err := this.session.Where("id =?", id).Cols("clean_content", "updated_at").Update(item)
 	return err
 }

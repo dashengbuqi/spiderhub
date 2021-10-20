@@ -1,0 +1,121 @@
+<div id="mainPanel" region="center" style="margin-left: 3px;">
+    <div class="total">
+        <div class="Handel cf">
+        </div>
+    </div>
+    <form id="datagridForm" method="post">
+        <table id="datagrid"></table>
+    </form>
+</div>
+<script type="text/javascript">
+    // 显示用户自定义搜索条件的标识符，true为显示
+    var needShowUserCondition = true;
+    var dataUrl = "/clean/list";
+    $(function() {
+        $('#datagrid').datagrid({
+            width : getDatagridWidth(),
+            height : getDatagridHeight(),
+            fitColumns : true,
+            nowrap : true,
+            autoRowHeight : false,
+            striped : true,
+            collapsible : true,
+            pagination : true,
+            url : dataUrl,
+            type : "post",
+            rownumbers : true,
+            idField : 'id',
+            checkOnSelect : false,
+            selectOnCheck : false,
+            singleSelect : true,
+            sortName:'id',
+            sortOrder:'desc',
+            onLoadSuccess : dataGridOnLoadSuccess,
+            columns : [
+                [
+                    {title : '任务名称',field : 'title',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '数据',field : 'ui_method',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '附件',field : 'ui_storage',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '错误信息',field : 'ui_error_info',width : $(this).width() * 0.05,align : 'center',halign:'center'},
+                    {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
+                        formatter:function (value,rec) {
+                            return '<span class="color_'+rec.status+'">'+value+'</span>';
+                        }},
+                    {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '操作',field : 'opt',width : $(this).width() * 0.15,align : 'center',halign:'center',
+                        formatter : function(value, rec) {
+                            var str = "";
+                            str += '<a href="javascript:void(0)" onclick="start(' + rec.id +');">开始清洗</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="debug(' + rec.id +');">调试</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="view(' + rec.id +',\''+rec.title+'\');">查看数据</a>&nbsp;&nbsp;';
+                            return str;
+                        }
+                    }
+                ]
+            ]
+        });
+    });
+
+    function view(id,title) {
+        addTab(title,"/clean/data?id="+id,"",true);
+    }
+    var _INTERVAL ='';
+    //存储数据
+    function start(id) {
+        var messagebody= showConfirm("数据清洗","确认启动清洗任务吗？",function(){
+            $.ajax({
+                url:"/clean/start?id="+id,
+                type:"put",
+                dataType:"json",
+                success : function(data) {
+                    if (data.status == 0) {
+                        $.messager.alert('温馨提示',data.msg,"error");
+                    } else {
+                        monitor(id)
+                    }
+                }
+            });
+        });
+        var messagebox=messagebody.parent();
+        var closeBox =messagebox.find(".panel-tool-close");
+        closeBox.unbind("click").bind("click",function(){
+            //closeMyWindow();
+            //  reloadDatagrid();
+            //  location.reload();
+            messagebox.siblings(".window-shadow").remove();
+            messagebox.siblings(".window-mask").remove();
+            messagebox.remove();
+        });
+    }
+
+    function monitor(id) {
+        showProcess(true, '温馨提示', '数据采集中...');
+        _INTERVAL =  setInterval(function () {
+            $.ajax({
+                url:"/clean/status?id="+id,
+                type:"get",
+                dataType:"json",
+                success : function(data) {
+                    if (data.status == 1) {
+                        reloadDatagrid();
+                        showProcess(false);
+                        clearInterval(_INTERVAL);
+                    }
+                }
+            });
+        },2000);
+    }
+
+    function debug(id) {
+        addTab("数据采集","/clean/debug?id="+id);
+    }
+</script>
+<style>
+    .color_0{
+        color:blue;
+    }
+    .color_1{
+        color:green;
+    }
+</style>
