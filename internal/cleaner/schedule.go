@@ -31,17 +31,14 @@ type Schedule struct {
 
 func NewSchedule(cc common.Communication) *Schedule {
 	cc.Token = helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Clean().ToString()
-	crawlToken := helper.NewToken(cc.UserId, cc.AppId, cc.DebugId).Crawler().ToString()
-	crawlTb := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, crawlToken)
 	lt := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_LOG, cc.Token)
 	dt := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, cc.Token)
 	return &Schedule{
-		inData:       &cc,
-		crawlerTable: crawlTb,
-		logTable:     lt,
-		dataTable:    dt,
-		outLog:       make(chan []byte),
-		outData:      make(chan map[string]interface{}),
+		inData:    &cc,
+		logTable:  lt,
+		dataTable: dt,
+		outLog:    make(chan []byte),
+		outData:   make(chan map[string]interface{}),
 		logQueue: &queue.Channel{
 			Exchange:     "Cleaners",
 			ExchangeType: "direct",
@@ -71,37 +68,60 @@ func (this *Schedule) Run() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		isDebug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
-		err = this.pushLogger(common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH), isDebug)
+		err = sp.ModifyCleanToken(this.inData.AppId, this.inData.Token)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		close(this.outLog)
-		close(this.outData)
 	}()
+	var err error
 	//初始化清洗对像
-	this.mainRule.Container.Set("Clean", this.init)
-	debug := map[string]interface{}{
+	err = this.mainRule.Container.Set("Clean", this.init)
+	if err != nil {
+		this.outLog <- common.FmtLog(common.LOG_ERROR, "初始化失败", common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		return
+	}
+	console := map[string]interface{}{
 		"log": func(call otto.FunctionCall) otto.Value {
 			out := helper.FmtConsole(call.ArgumentList)
 			this.outLog <- common.FmtLog(common.LOG_DEBUG, out, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			return otto.Value{}
 		},
 	}
-	err := this.mainRule.Init(this.inData.Content)
+	err = this.mainRule.Container.Set("console", console)
 	if err != nil {
 		this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		return
 	}
-	this.mainRule.Container.Set("console", debug)
+	go func() {
+		err = this.mainRule.InitBody(this.inData.Content)
+		if err != nil {
+			this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
+		}
+	}()
+
 	for {
 		select {
 		case l := <-this.outLog:
-			if l == nil {
+			//已经结结束
+			var res common.LogLevel
+			err := json.Unmarshal(l, &res)
+			if err != nil {
 				goto Loop
 			}
-			this.pushLogger(l, this.inData.Method == common.SCHEDULE_METHOD_DEBUG)
+			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
+			err = this.pushLogger(l, debug)
+			if err != nil {
+				spiderhub.Logger.Error("%v", err.Error())
+			}
+			if res.Type == 5 {
+				goto Loop
+			}
 		case d := <-this.outData:
-			this.pushData(d, this.inData.Method == common.SCHEDULE_METHOD_DEBUG)
+			debug := this.inData.Method == common.SCHEDULE_METHOD_DEBUG
+			err = this.pushData(d, debug)
+			if err != nil {
+				spiderhub.Logger.Error("%v", err.Error())
+			}
 		}
 	}
 Loop:
@@ -137,7 +157,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 	wg.Add(1)
 	go func() {
 		defer func() {
-			CleanPool.Stop(key)
+			CleanPool.Delete(key)
 			wg.Done()
 		}()
 		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_RUNNING)
@@ -151,13 +171,13 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 			//清空日志
-			logObj := spiderhub_data.NewCrawlerLog(this.logTable)
+			logObj := spiderhub_data.NewCollectLog(this.logTable)
 			err = logObj.RemoveRows()
 			if err != nil {
 				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 		}
-		cn := NewCleaner(this.inData.AppId, this.inData.Token, this.dataTable, this.inData.Method, this.mainRule.Rules, this.container, this.outLog, this.outData)
+		cn := NewCleaner(this.inData.AppId, this.inData.Token, this.bean.CrawlerToken, this.inData.Method, this.mainRule.Rules, this.container, this.outLog, this.outData)
 		CleanPool.Start(key, cn)
 	}()
 
@@ -177,7 +197,7 @@ func (this *Schedule) pushLogger(data []byte, debug bool) error {
 		return err
 	}
 	res["app_id"] = this.inData.AppId
-	obj := spiderhub_data.NewCrawlerLog(this.logTable)
+	obj := spiderhub_data.NewCollectLog(this.logTable)
 	if _, err := obj.Build(res); err != nil {
 		return err
 	}
@@ -188,7 +208,7 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 	if debug {
 		data := make(map[string]interface{})
 		for key, val := range body {
-			for _, v := range val.(map[bool]interface{}) {
+			for _, v := range val.(map[bool]*common.FieldData) {
 				data[key] = v
 			}
 		}

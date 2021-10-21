@@ -2,6 +2,7 @@ package cleaner
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/internal/crawler"
@@ -9,6 +10,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/robertkrimen/otto"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"sync"
 )
 
 type Cleaner struct {
@@ -24,9 +26,11 @@ type Cleaner struct {
 	runTimes  int
 	startBy   int64
 	dataTable string
+	mu        sync.RWMutex
 }
 
-func NewCleaner(appId int64, token string, dataTable string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
+func NewCleaner(appId int64, token string, crawlerToken string, method int, rule map[string]interface{}, vm *otto.Otto, log chan<- []byte, data chan<- map[string]interface{}) *Cleaner {
+	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, crawlerToken)
 	return &Cleaner{
 		appId:     appId,
 		inst:      collect.NewApplication(),
@@ -50,7 +54,8 @@ func (this *Cleaner) Run() {
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		this.outLog <- nil
+		this.outLog <- common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+		this.outLog <- common.FmtLog(common.LOG_INFO, "", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
 	}()
 	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
 	if err != nil {
@@ -62,7 +67,7 @@ func (this *Cleaner) Run() {
 		this.initTable()
 	}
 	var page int64 = 1
-	var limit int64 = 20
+	var limit int64 = 50
 	var skip int64
 	lost := make(map[string]bool)
 	cd := spiderhub_data.NewCollectData(this.dataTable)
@@ -78,23 +83,19 @@ func (this *Cleaner) Run() {
 			this.outLog <- common.FmtLog(common.LOG_ERROR, "获取分页数据错误:"+err.Error(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			continue
 		}
-		if list == nil {
+		if len(list) == 0 {
 			goto Loop
 		}
 		for _, item := range list {
-			if this.abort == true {
-				goto Loop
-			}
-			this.process(item.(map[string]interface{}))
+			this.process(item)
 		}
 		page++
 	}
 Loop:
-	if len(lost) == 0 {
+	if len(lost) > 0 {
 		lostStr, _ := json.Marshal(lost)
 		this.outLog <- common.FmtLog(common.LOG_ERROR, string(lostStr), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 	}
-	this.outLog <- common.FmtLog(common.LOG_INFO, "数据清洗结束", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 }
 
 func (this *Cleaner) Stop() {
@@ -102,18 +103,20 @@ func (this *Cleaner) Stop() {
 }
 
 //处理数据
-func (this *Cleaner) process(data map[string]interface{}) {
+func (this *Cleaner) process(data interface{}) {
+	mu.Lock()
+	defer mu.Unlock()
 	row := make(map[string]interface{})
 	row["extract"] = map[string]interface{}{
-		"__id":   data["_id"].(primitive.ObjectID).String(),
-		"__url":  data["targetUrl"],
-		"__time": data["created_at"],
+		"__id":   data.(map[string]interface{})["_id"].(primitive.ObjectID).String(),
+		"__url":  data.(map[string]interface{})["targetUrl"],
+		"__time": data.(map[string]interface{})["created_at"],
 	}
-	delete(data, "_id")
-	delete(data, "app_id")
-	delete(data, "user_id")
-	delete(data, "created_at")
-	row["data"] = data
+	delete(data.(map[string]interface{}), "_id")
+	delete(data.(map[string]interface{}), "app_id")
+	delete(data.(map[string]interface{}), "user_id")
+	delete(data.(map[string]interface{}), "created_at")
+	row["data"] = data.(map[string]interface{})
 
 	//回调
 	var result map[string]interface{}
@@ -164,9 +167,9 @@ func (this *Cleaner) packaging(data map[string]interface{}, fields []FieldStash)
 //获取主键对
 func (this *Cleaner) searchPrimary(result map[string]interface{}) (string, interface{}) {
 	for field, item := range result {
-		for isPrimary, data := range item.(map[bool]interface{}) {
+		for isPrimary, data := range item.(map[bool]*common.FieldData) {
 			if isPrimary {
-				val := data.(*common.FieldData).Value
+				val := data.Value
 				return field, val
 			}
 		}

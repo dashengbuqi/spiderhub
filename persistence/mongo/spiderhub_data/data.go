@@ -57,8 +57,8 @@ func (this *CollectData) RemoveRows() error {
 	return err
 }
 
-func (this *CollectData) GetRowsBy(skip int64, limit int64) ([]interface{}, error) {
-	var items []interface{}
+func (this *CollectData) GetRowsBy(skip int64, limit int64) ([]map[string]interface{}, error) {
+	items := make([]map[string]interface{}, 0)
 	err := this.collect.Find(this.ctx, bson.M{}).Skip(skip).Limit(limit).All(&items)
 	return items, err
 }

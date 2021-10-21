@@ -63,6 +63,25 @@ func (this *CleanController) GetDebug() mvc.Result {
 	}
 }
 
+//调试开始
+func (this *CleanController) PostBegin() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	code := this.Ctx.FormValue("code")
+	debug_id, err := this.Service.CleanBegin(id, code)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("开始执行", iris.Map{"debug_id": debug_id})
+}
+
+//心跳检测
+func (this *CleanController) GetHeart() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
+	res := this.Service.CleanHeart(id, debug_id, 0)
+	return helper.ResultSuccess("SUCCESS", res)
+}
+
 func (this *CleanController) PostSave() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	code := this.Ctx.FormValue("code")

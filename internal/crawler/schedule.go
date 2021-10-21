@@ -84,6 +84,7 @@ func (this *Schedule) Run() {
 	err = this.mainRule.Container.Set("console", console)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err.Error())
+		return
 	}
 	go func() {
 		err := this.mainRule.InitBody(this.inData.Content)

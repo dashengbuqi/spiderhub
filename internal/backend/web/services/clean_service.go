@@ -3,10 +3,12 @@ package services
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
+	"time"
 )
 
 type CleanService interface {
@@ -93,11 +95,97 @@ func (this *cleanService) GetCleanHead(id int64) []*common.TableHead {
 
 //调试开始
 func (this *cleanService) CleanBegin(id int64, code string) (int64, error) {
-	return 0, nil
+	if id == 0 {
+		return 0, errors.New("缺少参数")
+	}
+	if len(code) == 0 {
+		return 0, errors.New("未获取到采集规则")
+	}
+	debug_id := time.Now().Unix()
+	cm := &common.Communication{
+		AppId:   id,
+		UserId:  0,
+		DebugId: debug_id,
+		Method:  common.METHOD_DEBUG,
+		Content: code,
+	}
+	str, err := json.Marshal(cm)
+	if err != nil {
+		return debug_id, err
+	}
+	err = queue.RabbitConn.Publish(&queue.CleanerChannel, str)
+	return debug_id, err
 }
 
 func (this *cleanService) CleanHeart(id, debug_id, user_id int64) interface{} {
-	return nil
+	if id == 0 || debug_id == 0 {
+		return ""
+	}
+	model, _ := this.repo.GetRowByID(id)
+	var logList []common.LogLevel
+	var dataList []map[string]interface{}
+	token := helper.NewToken(user_id, id, debug_id).Clean().ToString()
+	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, token)
+	logTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_LOG, token)
+	lcnl := &queue.Channel{
+		Exchange:     "Cleaners",
+		ExchangeType: "direct",
+		RoutingKey:   logTable,
+		Reliable:     true,
+		Durable:      false,
+		AutoDelete:   true,
+	}
+	dcnl := &queue.Channel{
+		Exchange:     "Cleaners",
+		ExchangeType: "direct",
+		RoutingKey:   dataTable,
+		Reliable:     true,
+		Durable:      false,
+		AutoDelete:   true,
+	}
+
+	logOut := make(chan []byte)
+	dataOut := make(chan []byte)
+	var err error
+	go queue.RabbitConn.Consume(lcnl, logOut)
+	go queue.RabbitConn.Consume(dcnl, dataOut)
+	t := time.NewTicker(time.Second * 2)
+	for {
+		select {
+		case l := <-logOut:
+			var item common.LogLevel
+			err = json.Unmarshal(l, &item)
+			if err == nil {
+				logList = append(logList, item)
+			}
+			if item.Type == common.LOG_TYPE_FINISH {
+				goto Loop
+			}
+		case d := <-dataOut:
+			var item map[string]interface{}
+			err = json.Unmarshal(d, &item)
+			if err == nil {
+				dataList = append(dataList, item)
+			}
+		case <-t.C:
+			goto Loop
+		}
+	}
+Loop:
+	res := struct {
+		Id      int64                    `json:"id"`
+		Status  int                      `json:"status"`
+		DebugId int64                    `json:"debug_id"`
+		Logs    []common.LogLevel        `json:"logs"`
+		Rows    []map[string]interface{} `json:"rows"`
+	}{
+		Id:      id,
+		Status:  model.Status,
+		DebugId: debug_id,
+		Logs:    logList,
+		Rows:    dataList,
+	}
+	return res
 }
 
 //终止调试

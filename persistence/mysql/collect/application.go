@@ -126,6 +126,7 @@ func (this *Application) GetMethodComboList() string {
 type ApplicationImp interface {
 	ModifyStatus(id int64, state int) error
 	ModifyToken(id int64, token string) error
+	ModifyCleanToken(id int64, token string) error
 	GetRowByID(id int64) (*Application, error)
 	PostList(req *helper.RequestParams) string
 	ModifyItem(id int64, item *Application) error
@@ -149,6 +150,13 @@ func (this *application) ModifyToken(id int64, token string) error {
 	item.CrawlerToken = token
 	item.UpdatedAt = time.Now().Unix()
 	_, err := this.session.Where("id=?", id).Cols("crawler_token", "updated_at").Update(item)
+	return err
+}
+func (this *application) ModifyCleanToken(id int64, token string) error {
+	var item Application
+	item.CleanToken = token
+	item.UpdatedAt = time.Now().Unix()
+	_, err := this.session.Where("id=?", id).Cols("clean_token", "updated_at").Update(item)
 	return err
 }
 

@@ -100,7 +100,7 @@ func NewRuleConfig() *RuleConfig {
 	}
 }
 
-func (this *RuleConfig) Init(body string) error {
+func (this *RuleConfig) InitBody(body string) error {
 	st, _ := this.Container.Object(`({XPath:0,JsonPath:1,Regex:2})`)
 	this.Container.Set("SelectType", st)
 	ua, _ := this.Container.Object(`({Computer:0,Android:1,IOS:2,Mobile:3,Empty:4})`)
@@ -135,7 +135,7 @@ func (this *RuleConfig) LazyLoad(oo *otto.Object) {
 		spiderhub.Logger.Error("%v", err)
 	}
 
-	if valField, err := this.Container.Get(FIELDS); err == nil {
+	if valField, err := this.oo.Get(FIELDS); err == nil {
 		fields := valField.Object().Keys()
 		if len(fields) > 0 {
 			var items []FieldStash
