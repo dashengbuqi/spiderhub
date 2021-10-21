@@ -90,7 +90,16 @@ func (this *cleanService) CleanStart(id int64) error {
 }
 
 func (this *cleanService) GetCleanHead(id int64) []*common.TableHead {
-	return nil
+	af := collect.NewAppField()
+	item, _ := af.GetRowByID(collect.TARGET_CLEAN, id)
+	var content []*common.TableHead
+	if len(item.Content) > 0 {
+		err := json.Unmarshal([]byte(item.Content), &content)
+		if err != nil {
+			return nil
+		}
+	}
+	return content
 }
 
 //调试开始
@@ -190,6 +199,20 @@ Loop:
 
 //终止调试
 func (this *cleanService) CleanEnd(id int64, debug_id int64, user_id int64) error {
-
+	if id == 0 || debug_id == 0 {
+		return errors.New("缺少参数")
+	}
+	cm := &common.Communication{
+		AppId:   id,
+		UserId:  user_id,
+		DebugId: debug_id,
+		Method:  common.METHOD_DEBUG,
+		Abort:   true,
+	}
+	str, _ := json.Marshal(cm)
+	err := queue.RabbitConn.Publish(&queue.CleanerChannel, str)
+	if err != nil {
+		return err
+	}
 	return nil
 }

@@ -82,6 +82,17 @@ func (this *CleanController) GetHeart() string {
 	return helper.ResultSuccess("SUCCESS", res)
 }
 
+//调试结束
+func (this *CleanController) PutEnd() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
+	err := this.Service.CleanEnd(id, debug_id, 0)
+	if err != nil {
+		return helper.ResultError(err.Error())
+	}
+	return helper.ResultSuccess("调试正在终止...", nil)
+}
+
 func (this *CleanController) PostSave() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	code := this.Ctx.FormValue("code")

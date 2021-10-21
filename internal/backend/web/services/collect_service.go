@@ -271,9 +271,9 @@ func (this *collectService) CrawlerEnd(id int64, debug_id int64, user_id int64) 
 	}
 	cm := &common.Communication{
 		AppId:   id,
-		UserId:  0,
+		UserId:  user_id,
 		DebugId: debug_id,
-		Method:  0,
+		Method:  common.METHOD_DEBUG,
 		Abort:   true,
 	}
 	str, _ := json.Marshal(cm)
