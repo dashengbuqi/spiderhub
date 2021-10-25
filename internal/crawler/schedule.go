@@ -59,7 +59,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 func (this *Schedule) Run() {
 	defer func() {
 		sp := collect.NewApplication()
-		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_NORMAL)
+		err := sp.ModifyStatus(this.inData.AppId, common.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -154,7 +154,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			wg.Done()
 		}()
 		//非调试模式且数据存储方式是重新
-		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == collect.METHOD_INSERT {
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == common.METHOD_INSERT {
 			dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, this.inData.Token)
 			dataObj := spiderhub_data.NewCollectData(dataTable)
 			err := dataObj.RemoveRows()
@@ -217,18 +217,30 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 		return nil
 	}
 	//数据持久化
-	data := make(map[string]interface{})
+	data := make(map[string]map[bool]*common.FieldData)
 	for field, value := range body {
-		data[field] = value.(map[bool]interface{})
+		data[field] = value.(map[bool]*common.FieldData)
 	}
-	data["app_id"] = map[bool]interface{}{
-		false: this.inData.AppId,
+	data["app_id"] = map[bool]*common.FieldData{
+		false: {
+			Type:  "int",
+			Value: this.inData.AppId,
+			Alias: "应用ID",
+		},
 	}
-	data["user_id"] = map[bool]interface{}{
-		false: this.inData.UserId,
+	data["user_id"] = map[bool]*common.FieldData{
+		false: {
+			Alias: "用户",
+			Value: this.inData.UserId,
+			Type:  "int",
+		},
 	}
-	data["created_at"] = map[bool]interface{}{
-		false: time.Now().Unix(),
+	data["created_at"] = map[bool]*common.FieldData{
+		false: {
+			Alias: "创建时间",
+			Value: time.Now().Unix(),
+			Type:  "int",
+		},
 	}
 	dataDoc := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, this.inData.Token)
 	obj := spiderhub_data.NewCollectData(dataDoc)

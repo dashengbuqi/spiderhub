@@ -57,7 +57,7 @@ func (this *Spider) Run() {
 		if p != nil {
 			this.outLog <- common.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
-		err := this.inst.ModifyStatus(this.appId, collect.STATUS_NORMAL)
+		err := this.inst.ModifyStatus(this.appId, common.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -65,7 +65,7 @@ func (this *Spider) Run() {
 		this.outLog <- common.FmtLog(common.LOG_INFO, "", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
 	}()
 	//开始执行蜘蛛
-	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
+	err := this.inst.ModifyStatus(this.appId, common.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
