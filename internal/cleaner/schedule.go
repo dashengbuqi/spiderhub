@@ -64,7 +64,7 @@ func NewSchedule(cc common.Communication) *Schedule {
 func (this *Schedule) Run() {
 	defer func() {
 		sp := collect.NewApplication()
-		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_NORMAL)
+		err := sp.ModifyStatus(this.inData.AppId, common.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
@@ -160,11 +160,11 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 			CleanPool.Delete(key)
 			wg.Done()
 		}()
-		err := sp.ModifyStatus(this.inData.AppId, collect.STATUS_RUNNING)
+		err := sp.ModifyStatus(this.inData.AppId, common.STATUS_RUNNING)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
-		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == collect.METHOD_INSERT {
+		if this.inData.Method == common.SCHEDULE_METHOD_EXECUTE && this.bean.Method == common.METHOD_INSERT {
 			dataObj := spiderhub_data.NewCollectData(this.dataTable)
 			err := dataObj.RemoveRows()
 			if err != nil {
@@ -246,7 +246,7 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 		},
 	}
 	obj := spiderhub_data.NewCollectData(this.dataTable)
-	if err := obj.Build(data, this.bean.Method); err != nil {
+	if err := obj.BuildClean(data, this.bean.Method); err != nil {
 		return err
 	}
 	return nil

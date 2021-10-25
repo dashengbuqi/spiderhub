@@ -49,14 +49,14 @@ func (this *Cleaner) Run() {
 		if p != nil {
 			this.outLog <- common.FmtLog(common.LOG_ERROR, p.(error).Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
-		err := this.inst.ModifyStatus(this.appId, collect.STATUS_NORMAL)
+		err := this.inst.ModifyStatus(this.appId, common.STATUS_NORMAL)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)
 		}
 		this.outLog <- common.FmtLog(common.LOG_INFO, "执行完成", common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 		this.outLog <- common.FmtLog(common.LOG_INFO, "", common.LOG_LEVEL_INFO, common.LOG_TYPE_FINISH)
 	}()
-	err := this.inst.ModifyStatus(this.appId, collect.STATUS_RUNNING)
+	err := this.inst.ModifyStatus(this.appId, common.STATUS_RUNNING)
 	if err != nil {
 		spiderhub.Logger.Error("%v", err)
 	}
@@ -120,7 +120,6 @@ func (this *Cleaner) process(data interface{}) {
 	//回调
 	var result map[string]interface{}
 	if res, err := this.container.Call(FUNC_ON_EACH_ROW, nil, row); err == nil {
-		fmt.Println(res.IsDefined())
 		if res.IsDefined() == true {
 			result = NewExtract(res, this.rules[FIELDS].([]FieldStash), this.container, this.outLog).Run()
 		} else {

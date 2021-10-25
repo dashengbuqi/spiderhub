@@ -51,6 +51,29 @@ func (this *CollectData) Build(data map[string]interface{}, method int) error {
 	return nil
 }
 
+//创建数据
+func (this *CollectData) BuildClean(data map[string]map[bool]*common.FieldData, method int) error {
+	//格式化数据
+	pm, ndata := dataCleanFormat(data)
+	//需要更新则检查是否存在
+	if method == common.METHOD_UPDATE && len(pm.field) > 0 {
+		cond := bson.M{pm.field: pm.value}
+		amount, _ := this.collect.Find(this.ctx, cond).Count()
+		if amount > 0 {
+			err := this.collect.UpdateOne(this.ctx, cond, ndata)
+			if err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+	_, err := this.collect.InsertOne(this.ctx, ndata)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 //删除表中数据
 func (this *CollectData) RemoveRows() error {
 	_, err := this.collect.RemoveAll(this.ctx, bson.M{})
@@ -123,6 +146,22 @@ func dataFormat(data map[string]interface{}) (*primary, interface{}) {
 
 	for key, value := range data {
 		for isPrimary, val := range value.(map[bool]interface{}) {
+			if isPrimary {
+				p.field = key
+				p.value = val
+			}
+			n[key] = val
+		}
+	}
+	return p, n
+}
+
+func dataCleanFormat(data map[string]map[bool]*common.FieldData) (*primary, interface{}) {
+	p := new(primary)
+	n := make(map[string]interface{})
+
+	for key, value := range data {
+		for isPrimary, val := range value {
 			if isPrimary {
 				p.field = key
 				p.value = val
