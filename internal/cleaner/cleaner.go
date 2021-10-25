@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/internal/common"
-	"github.com/dashengbuqi/spiderhub/internal/crawler"
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/robertkrimen/otto"
@@ -121,12 +120,15 @@ func (this *Cleaner) process(data interface{}) {
 	//回调
 	var result map[string]interface{}
 	if res, err := this.container.Call(FUNC_ON_EACH_ROW, nil, row); err == nil {
+		fmt.Println(res.IsDefined())
 		if res.IsDefined() == true {
 			result = NewExtract(res, this.rules[FIELDS].([]FieldStash), this.container, this.outLog).Run()
 		} else {
 			result = this.packaging(row["data"].(map[string]interface{}), this.rules[FIELDS].([]FieldStash))
 		}
 	} else {
+		fmt.Println("没有回调")
+		fmt.Println(err)
 		result = this.packaging(row["data"].(map[string]interface{}), this.rules[FIELDS].([]FieldStash))
 	}
 	//下载附件
@@ -152,10 +154,14 @@ func (this *Cleaner) process(data interface{}) {
 func (this *Cleaner) packaging(data map[string]interface{}, fields []FieldStash) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, field := range fields {
+		tp := field.Type
+		if len(tp) == 0 {
+			tp = "string"
+		}
 		if _, ok := data[field.Name]; ok {
 			result[field.Name] = map[bool]*common.FieldData{
 				field.Primary: {
-					Type:  field.Type,
+					Type:  tp,
 					Value: data[field.Name],
 					Alias: field.Alias,
 				}}
@@ -179,7 +185,7 @@ func (this *Cleaner) searchPrimary(result map[string]interface{}) (string, inter
 
 func (this *Cleaner) initTable() {
 	var items []interface{}
-	for _, field := range this.rules[crawler.FIELDS].([]crawler.FieldStash) {
+	for _, field := range this.rules[FIELDS].([]FieldStash) {
 		table := make(map[string]string)
 		alias := field.Alias
 		if len(alias) == 0 {

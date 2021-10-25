@@ -170,7 +170,7 @@ func (this *RuleConfig) LazyLoad(oo *otto.Object) {
 }
 
 func (this *RuleConfig) setCallBack(fn string) {
-	if fnVal, _ := this.oo.Get(fn); fnVal.IsDefined() {
+	if fnVal, err := this.oo.Get(fn); err == nil {
 		err := this.Container.Set(fn, fnVal)
 		if err != nil {
 			spiderhub.Logger.Error("%v", err)

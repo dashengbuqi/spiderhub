@@ -7,6 +7,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/queue"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"time"
 )
@@ -45,7 +46,17 @@ func (this *cleanService) GetCleanList(post *helper.RequestParams) string {
 }
 
 func (this *cleanService) GetCleanData(post *helper.RequestParams) string {
-	return ""
+	if post.Id == 0 {
+		return "{\"total\":0,\"rows\":{}}"
+	}
+	item, _ := this.repo.GetRowByID(post.Id)
+	if len(item.CrawlerToken) == 0 {
+		return "{\"total\":0,\"rows\":{}}"
+	}
+	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, item.CleanToken)
+	d := spiderhub_data.NewCollectData(dataTable)
+	result := d.PostList(post)
+	return result
 }
 
 func (this *cleanService) ModifyClean(id int64, content string) error {

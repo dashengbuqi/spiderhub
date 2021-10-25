@@ -177,7 +177,7 @@ func (this *Schedule) start(call otto.FunctionCall) otto.Value {
 				this.outLog <- common.FmtLog(common.LOG_ERROR, err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 			}
 		}
-		cn := NewCleaner(this.inData.AppId, this.inData.Token, this.bean.CrawlerToken, this.inData.Method, this.mainRule.Rules, this.container, this.outLog, this.outData)
+		cn := NewCleaner(this.inData.AppId, this.inData.Token, this.bean.CrawlerToken, this.inData.Method, this.mainRule.Rules, this.mainRule.Container, this.outLog, this.outData)
 		CleanPool.Start(key, cn)
 	}()
 
@@ -220,26 +220,26 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 		return nil
 	}
 	//数据持久化
-	data := make(map[string]interface{})
+	data := make(map[string]map[bool]*common.FieldData)
 	for field, value := range body {
 		data[field] = value.(map[bool]*common.FieldData)
 	}
-	data["app_id"] = map[bool]interface{}{
-		false: &common.FieldData{
+	data["app_id"] = map[bool]*common.FieldData{
+		false: {
 			Alias: "应用",
 			Type:  TYPE_INT,
 			Value: this.inData.AppId,
 		},
 	}
-	data["user_id"] = map[bool]interface{}{
-		false: &common.FieldData{
+	data["user_id"] = map[bool]*common.FieldData{
+		false: {
 			Alias: "用户",
 			Type:  TYPE_INT,
 			Value: this.inData.UserId,
 		},
 	}
-	data["created_at"] = map[bool]interface{}{
-		false: &common.FieldData{
+	data["created_at"] = map[bool]*common.FieldData{
+		false: {
 			Alias: "创建时间",
 			Type:  TYPE_INT,
 			Value: time.Now().Unix(),

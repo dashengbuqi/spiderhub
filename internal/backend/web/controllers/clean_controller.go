@@ -102,3 +102,28 @@ func (this *CleanController) PostSave() string {
 	}
 	return helper.ResultSuccess("保存成功", nil)
 }
+
+func (this *CleanController) GetData() mvc.Result {
+	id, _ := this.Ctx.URLParamInt64("id")
+	th := this.Service.GetCleanHead(id)
+	return &mvc.View{
+		Name: "clean/data.html",
+		Data: iris.Map{"id": id, "head": th},
+	}
+}
+
+func (this *CleanController) PostData() string {
+	id, _ := this.Ctx.URLParamInt64("id")
+	page, _ := this.Ctx.PostValueInt("page")
+	pageSize, _ := this.Ctx.PostValueInt("rows")
+	sort := this.Ctx.PostValueDefault("sort", "id")
+	order := this.Ctx.PostValueDefault("order", "desc")
+	result := this.Service.GetCleanData(&helper.RequestParams{
+		Page:     page,
+		PageSize: pageSize,
+		Sort:     sort,
+		Order:    order,
+		Id:       id,
+	})
+	return result
+}

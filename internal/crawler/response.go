@@ -390,16 +390,12 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 		//临时字段
 		if field.Temporary {
 			if res, err := this.container.Call(FUNC_AFTER_EXTRACT_FIELD, nil, item); err == nil {
-				if res.IsDefined() {
-					item = res
-				}
+				item = res
 			}
 		}
 		//抽取到内容后回调此函数
 		if res, err := this.container.Call(FUNC_AFTER_EXTRACT_FIELD, nil, item); err == nil {
-			if res.IsDefined() {
-				item = res
-			}
+			item = res
 		}
 		data = map[bool]interface{}{
 			field.Primary: item,

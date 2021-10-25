@@ -67,7 +67,7 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 			}
 			result = &common.FieldData{
 				Alias: field.Alias,
-				Type:  TYPE_MAP,
+				Type:  fieldType,
 				Value: subResult,
 			}
 		} else {
@@ -83,7 +83,7 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				}
 				result = &common.FieldData{
 					Alias: field.Alias,
-					Type:  TYPE_MAP,
+					Type:  fieldType,
 					Value: subResult,
 				}
 			}
@@ -106,7 +106,7 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 			}
 			result = &common.FieldData{
 				Alias: field.Alias,
-				Type:  TYPE_ARRAY,
+				Type:  fieldType,
 				Value: subResult,
 			}
 		} else {
@@ -120,7 +120,7 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				}
 				result = &common.FieldData{
 					Alias: field.Alias,
-					Type:  TYPE_ARRAY,
+					Type:  fieldType,
 					Value: subResult,
 				}
 			}
