@@ -29,7 +29,7 @@ func NewCollectData(table string) *CollectData {
 }
 
 //创建数据
-func (this *CollectData) Build(data map[string]map[bool]*common.FieldData, method int) error {
+func (this *CollectData) Build(data map[string]interface{}, method int) error {
 	//格式化数据
 	pm, ndata := dataFormat(data)
 	//需要更新则检查是否存在
@@ -117,12 +117,12 @@ func (this *CollectData) assembleTable(query qmgo.QueryI, req *helper.RequestPar
 	}
 }
 
-func dataFormat(data map[string]map[bool]*common.FieldData) (*primary, interface{}) {
+func dataFormat(data map[string]interface{}) (*primary, interface{}) {
 	p := new(primary)
 	n := make(map[string]interface{})
 
 	for key, value := range data {
-		for isPrimary, val := range value {
+		for isPrimary, val := range value.(map[bool]interface{}) {
 			if isPrimary {
 				p.field = key
 				p.value = val

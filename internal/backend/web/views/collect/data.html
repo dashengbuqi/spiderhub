@@ -41,11 +41,9 @@
                         {
                             title: '{{.Alias}}', field: '{{.Name}}', width: $(this).width() * 0.05, align: 'center', halign: 'center',
                             formatter:function (val,item) {
-                                if (typeof val === "string") {
-                                    var dd=val.replace(/<\/?.+?>/g,"");
-                                    return dd;
-                                }
-                                return val;
+                                var dd=val.replace(/<\/?.+?>/g,"");
+                                var dds=dd.replace(/ /g,"");//dds为得到后的内容
+                                return dds;
                             }
                         },
                         {{end}}

@@ -42,7 +42,9 @@
                             title: '{{.Alias}}', field: '{{.Name}}', width: $(this).width() * 0.05, align: 'center', halign: 'center',
                             formatter:function (data,item) {
                                 if (data.type == "string") {
-                                    return data.value.replace(/<\/?.+?>/g,"");
+                                    var dd=data.replace(/<\/?.+?>/g,"");
+                                    var dds=dd.replace(/ /g,"");//dds为得到后的内容
+                                    return dds;
                                 } else {
                                     return data.value;
                                 }

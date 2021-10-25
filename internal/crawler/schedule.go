@@ -209,7 +209,7 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 				data[key] = v
 			}
 		}
-		res, _ := json.MarshalIndent(&data, "", "\t")
+		res, _ := json.Marshal(data)
 		err := this.rabbitConn.Publish(this.dataQueue, res)
 		if err != nil {
 			return err
@@ -217,30 +217,18 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 		return nil
 	}
 	//数据持久化
-	data := make(map[string]map[bool]*common.FieldData)
+	data := make(map[string]interface{})
 	for field, value := range body {
-		data[field] = value.(map[bool]*common.FieldData)
+		data[field] = value.(map[bool]interface{})
 	}
-	data["app_id"] = map[bool]*common.FieldData{
-		false: {
-			Type:  "int",
-			Value: this.inData.AppId,
-			Alias: "应用ID",
-		},
+	data["app_id"] = map[bool]interface{}{
+		false: this.inData.AppId,
 	}
-	data["user_id"] = map[bool]*common.FieldData{
-		false: {
-			Alias: "用户",
-			Value: this.inData.UserId,
-			Type:  "int",
-		},
+	data["user_id"] = map[bool]interface{}{
+		false: this.inData.UserId,
 	}
-	data["created_at"] = map[bool]*common.FieldData{
-		false: {
-			Alias: "创建时间",
-			Value: time.Now().Unix(),
-			Type:  "int",
-		},
+	data["created_at"] = map[bool]interface{}{
+		false: time.Now().Unix(),
 	}
 	dataDoc := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, this.inData.Token)
 	obj := spiderhub_data.NewCollectData(dataDoc)

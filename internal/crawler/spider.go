@@ -82,9 +82,9 @@ func (this *Spider) Run() {
 	sp.WithTransport(ts)
 	//不可重复抓取
 	sp.AllowURLRevisit = false
-	var timeout int = 30
+	var timeout int64 = 30
 	if _, ok := this.params[TIMEOUT]; ok {
-		timeout = this.params[TIMEOUT].(int)
+		timeout = this.params[TIMEOUT].(int64)
 	}
 	if _, ok := this.params[MAX_LIMIT]; ok {
 		this.maxLimit = this.params[MAX_LIMIT].(int)
@@ -94,9 +94,9 @@ func (this *Spider) Run() {
 	sp.SetRequestTimeout(timeouts)
 
 	//限速
-	var delay int = 1
+	var delay int64 = 1
 	if _, ok := this.params[DELAY]; ok {
-		delay = this.params[DELAY].(int)
+		delay = this.params[DELAY].(int64)
 	}
 	delays := time.Duration(delay) * time.Second
 	err = sp.Limit(
