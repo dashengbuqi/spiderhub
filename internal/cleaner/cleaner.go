@@ -127,8 +127,6 @@ func (this *Cleaner) process(data interface{}) {
 			result = this.packaging(row["data"].(map[string]interface{}), this.rules[FIELDS].([]FieldStash))
 		}
 	} else {
-		fmt.Println("没有回调")
-		fmt.Println(err)
 		result = this.packaging(row["data"].(map[string]interface{}), this.rules[FIELDS].([]FieldStash))
 	}
 	//下载附件

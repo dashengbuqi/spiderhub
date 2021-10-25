@@ -6,39 +6,28 @@ import (
 	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
+	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/mysql"
+	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
 	"github.com/go-xorm/xorm"
 	"strings"
 	"time"
 )
 
-const (
-	STATUS_NORMAL = iota
-	STATUS_RUNNING
-
-	METHOD_INSERT = 1
-	METHOD_UPDATE = 2
-	METHOD_APPEND = 3
-
-	STORAGE_NORMAL = 0
-	STORAGE_SERVER = 1
-	STORAGE_PAN    = 2
-)
-
 var (
 	statusArr = map[int]string{
-		STATUS_NORMAL:  "正常",
-		STATUS_RUNNING: "执行中",
+		common.STATUS_NORMAL:  "正常",
+		common.STATUS_RUNNING: "执行中",
 	}
 	methodArr = map[int]string{
-		METHOD_INSERT: "重新抓取",
-		METHOD_UPDATE: "更新",
-		METHOD_APPEND: "追加",
+		common.METHOD_INSERT: "重新抓取",
+		common.METHOD_UPDATE: "更新",
+		common.METHOD_APPEND: "追加",
 	}
 	storageArr = map[int]string{
-		STORAGE_NORMAL: "",
-		STORAGE_SERVER: "服务器",
-		STORAGE_PAN:    "云盘",
+		common.STORAGE_NORMAL: "",
+		common.STORAGE_SERVER: "服务器",
+		common.STORAGE_PAN:    "云盘",
 	}
 )
 
@@ -48,6 +37,7 @@ type Application struct {
 	UserId         int64  `json:"user_id"`
 	CrawlerToken   string `json:"crawler_token"`
 	CleanToken     string `json:"clean_token"`
+	UiCleanData    bool   `json:"ui_clean_data" xorm:"-"`
 	Status         int    `json:"status"` //状态(0完成1执行中)
 	UiStatus       string `json:"ui_status" xorm:"-"`
 	Schedule       string `json:"schedule"` //计划任务
@@ -79,20 +69,24 @@ func (this *Application) callUI() {
 	if len(this.ErrorInfo) > 0 {
 		this.UiErrorInfo = ""
 	}
+	//检查是否存在数据
+	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, this.CleanToken)
+	sd := spiderhub_data.NewCollectData(dataTable)
+	this.UiCleanData = sd.Has()
 }
 
 func (this *Application) GetStorageComboList() string {
 	items := []helper.ComboData{
 		{
-			Id:   STORAGE_NORMAL,
+			Id:   common.STORAGE_NORMAL,
 			Text: "请选择附件存储",
 		},
 		{
-			Id:   STORAGE_SERVER,
+			Id:   common.STORAGE_SERVER,
 			Text: "服务器",
 		},
 		{
-			Id:   STORAGE_PAN,
+			Id:   common.STORAGE_PAN,
 			Text: "云盘",
 		},
 	}
@@ -107,15 +101,15 @@ func (this *Application) GetMethodComboList() string {
 			Text: "请选择数据存储",
 		},
 		{
-			Id:   METHOD_INSERT,
+			Id:   common.METHOD_INSERT,
 			Text: "重新抓取",
 		},
 		{
-			Id:   METHOD_UPDATE,
+			Id:   common.METHOD_UPDATE,
 			Text: "数据更新",
 		},
 		{
-			Id:   METHOD_APPEND,
+			Id:   common.METHOD_APPEND,
 			Text: "追加数据",
 		},
 	}
@@ -231,7 +225,7 @@ func (this *application) ModifyItem(id int64, item *Application) error {
 			return errors.New("请选择数据存储方式")
 		}
 		item.UserId = 0
-		item.Status = STATUS_NORMAL
+		item.Status = common.STATUS_NORMAL
 		item.CreatedAt = time.Now().Unix()
 		_, err = this.session.InsertOne(item)
 	} else {

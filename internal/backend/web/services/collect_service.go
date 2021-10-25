@@ -96,7 +96,7 @@ func (this *collectService) ModifyCollectItem(id int64, form map[string][]string
 func (this *collectService) CrawlerStatus(id int64) error {
 	ca := collect.NewApplication()
 	row, _ := ca.GetRowByID(id)
-	if row.Status == collect.STATUS_RUNNING {
+	if row.Status == common.STATUS_RUNNING {
 		return errors.New("正在执行中")
 	}
 	return nil

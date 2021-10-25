@@ -39,6 +39,8 @@ func Run() {
 	mvc.Configure(app.Party("/collect"), collect)
 	//清洗
 	mvc.Configure(app.Party("/clean"), clean)
+	//导出数据
+	mvc.Configure(app.Party("/export"), export)
 
 	err = app.Run(iris.Addr(params["Addr"].(string)), iris.WithConfiguration(
 		iris.Configuration{
@@ -60,6 +62,12 @@ func index(app *mvc.Application) {
 	menuService := services.NewMenuService()
 	app.Register(menuService)
 	app.Handle(new(controllers.DefaultController))
+}
+
+func export(app *mvc.Application) {
+	es := services.NewExportService()
+	app.Register(es)
+	app.Handle(new(controllers.ExportController))
 }
 
 func collect(app *mvc.Application) {

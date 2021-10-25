@@ -1,0 +1,69 @@
+<div id="mainPanel" region="center" style="margin-left: 3px;">
+    <div class="total">
+        <div class="Handel cf">
+        </div>
+    </div>
+    <form id="datagridForm" method="post">
+        <table id="datagrid"></table>
+    </form>
+</div>
+<script type="text/javascript">
+    // 显示用户自定义搜索条件的标识符，true为显示
+    var needShowUserCondition = true;
+    var dataUrl = "/export/list";
+    $(function() {
+        $('#datagrid').datagrid({
+            width : getDatagridWidth(),
+            height : getDatagridHeight(),
+            fitColumns : true,
+            nowrap : true,
+            autoRowHeight : false,
+            striped : true,
+            collapsible : true,
+            pagination : true,
+            url : dataUrl,
+            type : "post",
+            rownumbers : true,
+            idField : 'id',
+            checkOnSelect : false,
+            selectOnCheck : false,
+            singleSelect : true,
+            sortName:'id',
+            sortOrder:'desc',
+            onLoadSuccess : dataGridOnLoadSuccess,
+            columns : [
+                [
+                    {title : '任务名称',field : 'title',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '计划任务',field : 'schedule',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '数据',field : 'ui_method',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '附件',field : 'ui_storage',width : $(this).width() * 0.08,align : 'center',halign:'center'},
+                    {title : '错误信息',field : 'ui_error_info',width : $(this).width() * 0.05,align : 'center',halign:'center'},
+                    {title : '状态',field : 'ui_status',width : $(this).width() * 0.05,align : 'center',halign:'center',
+                        formatter:function (value,rec) {
+                            return '<span class="color_'+rec.status+'">'+value+'</span>';
+                        }},
+                    {title : '创建时间',field : 'ui_created_at',width : $(this).width() * 0.1,align : 'center',halign:'center'},
+                    {title : '操作',field : 'opt',width : $(this).width() * 0.15,align : 'center',halign:'center',
+                        formatter : function(value, rec) {
+                            var str = "";
+                            if (rec.ui_clean_data == true) {
+                                str += '<a href="/export/download?id='+rec.id+'" target="_blank">下载</a>&nbsp;&nbsp;';
+                            }
+                            return str;
+                        }
+                    }
+                ]
+            ]
+        });
+    });
+
+
+</script>
+<style>
+    .color_0{
+        color:blue;
+    }
+    .color_1{
+        color:green;
+    }
+</style>

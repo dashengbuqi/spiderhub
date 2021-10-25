@@ -6,7 +6,6 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/dashengbuqi/spiderhub/middleware/mongo"
-	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/qiniu/qmgo"
 	"go.mongodb.org/mongo-driver/bson"
 	"strings"
@@ -34,7 +33,7 @@ func (this *CollectData) Build(data map[string]map[bool]*common.FieldData, metho
 	//格式化数据
 	pm, ndata := dataFormat(data)
 	//需要更新则检查是否存在
-	if method == collect.METHOD_UPDATE && len(pm.field) > 0 {
+	if method == common.METHOD_UPDATE && len(pm.field) > 0 {
 		cond := bson.M{pm.field: pm.value}
 		amount, _ := this.collect.Find(this.ctx, cond).Count()
 		if amount > 0 {
@@ -67,6 +66,11 @@ func (this *CollectData) GetRowsBy(skip int64, limit int64) ([]map[string]interf
 //删除表
 func (this *CollectData) Delete() error {
 	return this.collect.DropCollection(this.ctx)
+}
+
+func (this *CollectData) Has() bool {
+	num, _ := this.collect.Find(this.ctx, bson.M{}).Count()
+	return num > 0
 }
 
 func (this *CollectData) PostList(req *helper.RequestParams) string {

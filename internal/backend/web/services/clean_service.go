@@ -69,7 +69,7 @@ func (this *cleanService) ModifyClean(id int64, content string) error {
 func (this *cleanService) CleanStatus(id int64) error {
 	ca := collect.NewApplication()
 	row, _ := ca.GetRowByID(id)
-	if row.Status == collect.STATUS_RUNNING {
+	if row.Status == common.STATUS_RUNNING {
 		return errors.New("正在执行中")
 	}
 	return nil
