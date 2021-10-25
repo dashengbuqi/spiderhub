@@ -97,7 +97,6 @@
                 }
             })
         };
-
         this.save =function () {
             $.ajax({
                 type: 'post',

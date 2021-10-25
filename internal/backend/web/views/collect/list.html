@@ -1,7 +1,7 @@
 <div id="mainPanel" region="center" style="margin-left: 3px;">
     <div class="total">
         <div class="Handel cf">
-            <a href="javascript:void(0)" onclick="add()" class="cbtn add fr">新增</a>
+            <a href="javascript:void(0)" onclick="add()" id="addBtn" class="cbtn add fr">新增</a>
         </div>
     </div>
     <form id="datagridForm" method="post">
@@ -58,6 +58,10 @@
                 ]
             ]
         });
+        var s = "{{.step}}"
+        if (s === "debug") {
+            add()
+        }
     });
 
     function view(id,title) {

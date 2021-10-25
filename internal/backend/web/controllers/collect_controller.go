@@ -15,8 +15,10 @@ type CollectController struct {
 
 //加载列表视图
 func (this *CollectController) GetList() mvc.Result {
+	step := this.Ctx.URLParamDefault("step", "")
 	return &mvc.View{
 		Name: "collect/list.html",
+		Data: iris.Map{"step": step},
 	}
 }
 
@@ -53,8 +55,7 @@ func (this *CollectController) GetEdit() {
 		Value:    model.Method,
 		Data:     model.GetMethodComboList(),
 		Multiple: false,
-	},
-	)
+	})
 	this.Ctx.View("collect/edit.html")
 }
 
