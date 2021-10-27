@@ -5,11 +5,13 @@ import (
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type CleanController struct {
 	Ctx     iris.Context
 	Service services.CleanService
+	Session *sessions.Session
 }
 
 //加载列表视图

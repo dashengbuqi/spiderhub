@@ -7,11 +7,13 @@ import (
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/system"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type MenuController struct {
 	Ctx     iris.Context
 	Service services.MenuService
+	Session *sessions.Session
 }
 
 //加载列表视图

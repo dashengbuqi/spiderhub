@@ -11,6 +11,7 @@ type UserService interface {
 	ModifyMenuItem(id int64, form map[string][]string) error
 	GetUserList(post *helper.RequestParams) string
 	RemoveUser(id int64) error
+	GetByUsernameAndPwd(username, password string) (*system.SystemAdmin, error)
 }
 
 type userService struct {
@@ -21,6 +22,21 @@ func NewUserService() UserService {
 	return &userService{
 		repo: system.NewAdmin(),
 	}
+}
+
+func (this *userService) GetByUsernameAndPwd(username string, pwd string) (*system.SystemAdmin, error) {
+	u, err := this.repo.GetByName(username)
+	if err != nil {
+		return nil, err
+	}
+	if u.Status == system.ADMIN_STATUS_DISABLE {
+		return nil, errors.New("账号已被冻结")
+	}
+	p := helper.MakeHash(pwd, u.AuthKey)
+	if p != u.Password {
+		return nil, errors.New("密码错误")
+	}
+	return u, nil
 }
 
 //更新数据

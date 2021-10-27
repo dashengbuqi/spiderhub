@@ -17,19 +17,18 @@
 </div>
 <script>
     function refreshIndex () {
-        location.href="/center.html";
+        location.href="/default/main";
     }
     $(document).ready(function(){
         addTab("导航页","/default/main", '',false);
     });
-    function modifyPassword() {
-        showMyWindow("帐户设置","system/password",false,600,350);
+    function modifyPassword(id) {
+        showMyWindow("帐户设置","/user/edit?id="+id,false,600,350);
     }
     function selectMenu (menuId) {
         if($("#topMenu"+menuId).find("a").first().hasClass("j_menu_top_active")){
             return;
         }
-
 
         $(".tableleftbox").each(function(){
             $(this).hide();

@@ -2,10 +2,14 @@ package common
 
 import (
 	"encoding/json"
+	"github.com/kataras/iris/v12/sessions"
 	"time"
 )
 
 const (
+	USER_ID = "UserID"
+	USER    = "UserInfo"
+
 	EXEC_STATUS_FINISH  = 0
 	EXEC_STATUS_RUNNING = 1
 
@@ -77,6 +81,14 @@ const (
 
 	METHOD_DEBUG  = 0
 	METHOD_EXCUTE = 1
+)
+
+var (
+	Session = sessions.New(
+		sessions.Config{
+			Cookie:  "SHSESSION",
+			Expires: 24 * time.Hour,
+		})
 )
 
 //日志输出

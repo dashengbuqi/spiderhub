@@ -241,3 +241,10 @@ func ValueInArray(val interface{}, valArr []interface{}) bool {
 	}
 	return res
 }
+
+func MakeHash(str, salt string) string {
+	m5 := md5.New()
+	m5.Write([]byte(str))
+	m5.Write([]byte(salt))
+	return hex.EncodeToString(m5.Sum(nil))
+}

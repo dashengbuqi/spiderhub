@@ -6,11 +6,13 @@ import (
 	"github.com/dashengbuqi/spiderhub/internal/backend/widgets"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 )
 
 type CollectController struct {
 	Ctx     iris.Context
 	Service services.CollectService
+	Session *sessions.Session
 }
 
 //加载列表视图

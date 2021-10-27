@@ -1,0 +1,207 @@
+@charset "UTF-8";
+/*!
+ * 泰久前端样式库团队
+ */
+/*my-wallet card-list */
+/*Coupon*/
+/*ticket explain table bg*/
+/*!
+ * Mixins
+ */
+/*!
+ * Reset
+ */
+/* line 7, ../sass/_reset.scss */
+html {
+  color: #333333;
+  background: #ffffff;
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+/* line 13, ../sass/_reset.scss */
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, code, form, fieldset, legend, input, textarea, p, blockquote, th, td, hr, button, article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  margin: 0;
+  padding: 0;
+}
+
+/* line 17, ../sass/_reset.scss */
+i, img {
+  vertical-align: middle;
+}
+
+/*去除安卓高亮边框*/
+/* line 21, ../sass/_reset.scss */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* line 21, ../sass/_reset.scss */
+a {
+  display: inline-block;
+}
+
+/* line 21, ../sass/_reset.scss */
+div:focus, a:focus, input:focus {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* line 21, ../sass/_reset.scss */
+a:focus {
+  outline: 0;
+}
+
+/* line 21, ../sass/_reset.scss */
+div:active, a:active, input:active {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* line 24, ../sass/_reset.scss */
+article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, section {
+  display: block;
+}
+
+/* line 29, ../sass/_reset.scss */
+audio, canvas, video {
+  display: inline-block;
+  *display: inline;
+  *zoom: 1;
+}
+
+/* line 34, ../sass/_reset.scss */
+fieldset, img {
+  border: 0;
+}
+
+/*防止在webkit下出现font boosting*/
+/* line 38, ../sass/_reset.scss */
+* {
+  max-height: 999999px;
+}
+
+/* line 41, ../sass/_reset.scss */
+body, button, input, select, textarea {
+  font: 14px/20px Tahoma, Microsoft Yahei, Simsun, -apple-system, Heiti SC, Helvetica, Helvetica Neue, Droid Sans Fallback, Droid Sans;
+}
+
+/* line 45, ../sass/_reset.scss */
+ol, ul {
+  list-style: none;
+}
+
+/* line 50, ../sass/_reset.scss */
+blockquote, q {
+  quotes: none;
+}
+/* line 52, ../sass/_reset.scss */
+blockquote:before, blockquote:after, q:before, q:after {
+  content: '';
+}
+
+/* line 57, ../sass/_reset.scss */
+sub, sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+/* line 63, ../sass/_reset.scss */
+sup {
+  top: -0.5em;
+}
+
+/* line 66, ../sass/_reset.scss */
+sub {
+  bottom: -0.25em;
+}
+
+/* line 70, ../sass/_reset.scss */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* line 77, ../sass/_reset.scss */
+ins, a {
+  text-decoration: none;
+}
+
+/* line 81, ../sass/_reset.scss */
+input, textarea, button, a {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+}
+
+/* line 83, ../sass/_reset.scss */
+a, img {
+  -webkit-tap-highlight-color: rgba(255, 255, 255, 0);
+}
+
+/* line 86, ../sass/_reset.scss */
+input:focus {
+  outline: 0;
+}
+
+/*!
+ * Utility Classes
+ */
+/* line 7, ../sass/_utilities.scss */
+.fn-clear {
+  zoom: 1;
+}
+/* line 11, ../sass/_utilities.scss */
+.fn-clear:after {
+  visibility: hidden;
+  display: block;
+  font-size: 0;
+  content: ' ';
+  clear: both;
+  height: 0;
+}
+
+/* line 22, ../sass/_utilities.scss */
+body .fn-hide {
+  display: none;
+}
+
+/* line 27, ../sass/_utilities.scss */
+.fn-left, .fn-right {
+  display: inline;
+}
+
+/* line 30, ../sass/_utilities.scss */
+.fn-left {
+  float: left;
+}
+
+/* line 33, ../sass/_utilities.scss */
+.fn-right {
+  float: right;
+}
+
+/* line 36, ../sass/_utilities.scss */
+.clearfix:after {
+  clear: both;
+  content: ".";
+  display: block;
+  height: 0;
+  line-height: 0;
+  font-size: 0;
+  visibility: hidden;
+}
+
+/* line 37, ../sass/_utilities.scss */
+.clearfix {
+  zoom: 1;
+}
+
+/* line 38, ../sass/_utilities.scss */
+.pull-left {
+  float: left;
+}
+
+/* line 39, ../sass/_utilities.scss */
+.pull-right {
+  float: right;
+}

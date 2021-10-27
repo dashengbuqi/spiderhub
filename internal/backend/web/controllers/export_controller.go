@@ -10,6 +10,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
+	"github.com/kataras/iris/v12/sessions"
 	"github.com/xuri/excelize/v2"
 	"strconv"
 	"time"
@@ -18,6 +19,7 @@ import (
 type ExportController struct {
 	Ctx     iris.Context
 	Service services.ExportService
+	Session *sessions.Session
 }
 
 //加载列表视图

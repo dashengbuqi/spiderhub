@@ -67,6 +67,15 @@ func (this *Admin) GetRowBy(id int64) (*SystemAdmin, error) {
 	return &item, err
 }
 
+func (this *Admin) GetByName(username string) (*SystemAdmin, error) {
+	var item SystemAdmin
+	has, err := this.session.Where("username = ?", username).Get(&item)
+	if has == false {
+		return nil, errors.New("账号不存在或密码错误")
+	}
+	return &item, err
+}
+
 //加载菜载列表数据
 func (this *Admin) PostMenuList(req *helper.RequestParams) string {
 	var query *xorm.Session

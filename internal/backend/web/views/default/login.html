@@ -1,0 +1,60 @@
+<div id="container">
+    <div id="anitOut"></div>
+</div>
+
+
+<div class="container">
+
+    <div class="logo"><img src="/static/images/logo.png"></div>
+
+    <div class="box">
+        <form id="loginForm" method="post">
+            <label for="inputEmail" class="sr-only">用户名</label>
+            <input name="username" type="text" id="username" class="form-control easyui-validatebox" value="" placeholder="用户名" tabindex="1" data-options="required:true,validType:'length[2,32]'" />
+            <label for="inputPassword" class="sr-only">密码</label>
+            <input name="password" type="password" id="password" class="form-control easyui-validatebox" value="" data-options="required:true" placeholder="密码" tabindex="2" >
+            <button class="btn btn-primary btn-block show-dialog" type="button" onclick="submitForm()">登录</button>
+        </form>
+    </div>
+
+</div> <!-- /container -->
+<script type="text/javascript">
+    $(function () {
+        $("#username").val("");
+        $("#password").val("");
+    })
+    var ua = (/(msie) ([\w.]+)/.exec(navigator.userAgent.toLowerCase())),isIE7=false;
+    if(document.all && (ua[2]=="6.0")){
+        isIE7=true;
+        $.messager.alert('提示','您当前使用的浏览器版本过低，请升级到IE7及其以上版本或者使用Chrome、Firefox等浏览器！');
+    }
+    var enterKey=true;
+    $("body").bind('keyup',function(event){
+        if(isIE7) return false;
+        if(event.keyCode==13 && enterKey){
+            submitForm();
+        }
+        enterKey=true;
+    })
+    function submitForm() {
+        if (isIE7) return false;
+        $("#loginForm").form('submit',{
+            url:'/login',
+            method:"post",
+            onSubmit:function () {
+            if (!$(this).form('validate')) {
+                return false;
+            }
+            return true;
+        },
+        success:function (result) {
+            var result = eval('('+result+')');
+            if (result.status == 0){
+                $("#password").val('');
+            } else {
+                window.location.href = "/";
+            }
+        }
+    });
+    }
+</script>

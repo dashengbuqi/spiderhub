@@ -30,14 +30,14 @@
         <span class="r1" id="currentRoleIcon"></span>
         <span data-options="menu:'#mn1'" class="easyui-menubutton role-menu m-btn l-btn l-btn-plain m-btn-plain-active" id="roles" style="background: rgb(255, 255, 255) none repeat scroll 0% 0%; border: 0px none;" group="">
             <span class="l-btn-text">
-                <p id="loginusername">大圣不齐 【 超级管理员 】 </p>
+                <p id="loginusername">{{.username}}</p>
             </span>
         </span>
     </a>
 </div><!--su_p-->
-<div class="su_p2 menu-content menu-top menu" id="mn1" style="display: none; left: 1353px; height: auto; overflow: hidden; width: 118px; top: 43.75px; z-index: 110005;">
-    <a href="javascript:void(0)" onclick="modifyPassword()"><span class="r4"></span><span>帐户设置</span></a>
-    <a href="/logout"> <span class="r5"></span><span>退出</span></a>
+<div class="su_p2 menu-content menu-tdp menu" id="mn1" style="display: none; left: 1353px; height: auto; overflow: hidden; width: 118px; top: 43.75px; z-index: 110005;">
+    <a href="javascript:void(0)" onclick="modifyPassword({{.id}})"><span class="r4"></span><span>帐户设置</span></a>
+    <a href="/login/destroy"> <span class="r5"></span><span>退出</span></a>
 </div>
 <script>
     //左边初始化显示做菜单栏面板
