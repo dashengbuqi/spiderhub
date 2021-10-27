@@ -17,12 +17,12 @@ type CollectService interface {
 	GetRowBy(id int64) *collect.Application
 	GetCollectList(post *helper.RequestParams) string
 	GetCollectData(post *helper.RequestParams) string
-	ModifyCollectItem(id int64, form map[string][]string) error
+	ModifyCollectItem(id int64, user_id int64, form map[string][]string) error
 	ModifyCrawler(id int64, content string) error
 	Remove(id int64) error
 	CrawlerBegin(id int64, code string) (int64, error)
-	CrawlerHeart(id int64, debug_id int64, user_id int64) interface{}
-	CrawlerEnd(id int64, debug_id int64, user_id int64) error
+	CrawlerHeart(id int64, debug_id int64) interface{}
+	CrawlerEnd(id int64, debug_id int64) error
 	CrawlerStart(id int64) error
 	CrawlerStatus(id int64) error
 	GetCrawlerHead(id int64) []*common.TableHead
@@ -70,7 +70,7 @@ func (this *collectService) ModifyCrawler(id int64, content string) error {
 }
 
 //更新数据
-func (this *collectService) ModifyCollectItem(id int64, form map[string][]string) error {
+func (this *collectService) ModifyCollectItem(id int64, user_id int64, form map[string][]string) error {
 	var title, schedule, storage, method string
 	if _, ok := form["title"]; ok {
 		title = form["title"][0]
@@ -86,7 +86,7 @@ func (this *collectService) ModifyCollectItem(id int64, form map[string][]string
 	}
 	storageInt, _ := strconv.Atoi(storage)
 	methodInt, _ := strconv.Atoi(method)
-	return this.repo.ModifyItem(id, &collect.Application{
+	return this.repo.ModifyItem(id, user_id, &collect.Application{
 		Title:    title,
 		Schedule: schedule,
 		Storage:  storageInt,
@@ -177,10 +177,11 @@ func (this *collectService) CrawlerBegin(id int64, code string) (int64, error) {
 	if len(code) == 0 {
 		return 0, errors.New("未获取到采集规则")
 	}
+	row, _ := this.repo.GetRowByID(id)
 	debug_id := time.Now().Unix()
 	cm := &common.Communication{
 		AppId:   id,
-		UserId:  0,
+		UserId:  row.UserId,
 		DebugId: debug_id,
 		Method:  common.METHOD_DEBUG,
 		Content: code,
@@ -193,14 +194,14 @@ func (this *collectService) CrawlerBegin(id int64, code string) (int64, error) {
 	return debug_id, err
 }
 
-func (this *collectService) CrawlerHeart(id, debug_id, user_id int64) interface{} {
+func (this *collectService) CrawlerHeart(id, debug_id int64) interface{} {
 	if id == 0 || debug_id == 0 {
 		return ""
 	}
 	model, _ := this.repo.GetRowByID(id)
 	var logList []common.LogLevel
 	var dataList []map[string]interface{}
-	token := helper.NewToken(user_id, id, debug_id).Crawler().ToString()
+	token := helper.NewToken(model.UserId, id, debug_id).Crawler().ToString()
 	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_DATA, token)
 	logTable := fmt.Sprintf("%s%s", common.PREFIX_CRAWL_LOG, token)
 	lcnl := &queue.Channel{
@@ -265,13 +266,14 @@ Loop:
 }
 
 //终止调试
-func (this *collectService) CrawlerEnd(id int64, debug_id int64, user_id int64) error {
+func (this *collectService) CrawlerEnd(id int64, debug_id int64) error {
 	if id == 0 || debug_id == 0 {
 		return errors.New("缺少参数")
 	}
+	row, _ := this.repo.GetRowByID(id)
 	cm := &common.Communication{
 		AppId:   id,
-		UserId:  user_id,
+		UserId:  row.UserId,
 		DebugId: debug_id,
 		Method:  common.METHOD_DEBUG,
 		Abort:   true,

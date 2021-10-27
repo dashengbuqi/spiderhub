@@ -80,7 +80,7 @@ func (this *CleanController) PostBegin() string {
 func (this *CleanController) GetHeart() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
-	res := this.Service.CleanHeart(id, debug_id, 0)
+	res := this.Service.CleanHeart(id, debug_id)
 	return helper.ResultSuccess("SUCCESS", res)
 }
 
@@ -88,7 +88,7 @@ func (this *CleanController) GetHeart() string {
 func (this *CleanController) PutEnd() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
-	err := this.Service.CleanEnd(id, debug_id, 0)
+	err := this.Service.CleanEnd(id, debug_id)
 	if err != nil {
 		return helper.ResultError(err.Error())
 	}

@@ -18,8 +18,8 @@ type CleanService interface {
 	GetCleanData(post *helper.RequestParams) string
 	ModifyClean(id int64, content string) error
 	CleanBegin(id int64, code string) (int64, error)
-	CleanHeart(id int64, debug_id int64, user_id int64) interface{}
-	CleanEnd(id int64, debug_id int64, user_id int64) error
+	CleanHeart(id int64, debug_id int64) interface{}
+	CleanEnd(id int64, debug_id int64) error
 	CleanStart(id int64) error
 	CleanStatus(id int64) error
 	GetCleanHead(id int64) []*common.TableHead
@@ -121,10 +121,11 @@ func (this *cleanService) CleanBegin(id int64, code string) (int64, error) {
 	if len(code) == 0 {
 		return 0, errors.New("未获取到采集规则")
 	}
+	row, _ := this.repo.GetRowByID(id)
 	debug_id := time.Now().Unix()
 	cm := &common.Communication{
 		AppId:   id,
-		UserId:  0,
+		UserId:  row.UserId,
 		DebugId: debug_id,
 		Method:  common.METHOD_DEBUG,
 		Content: code,
@@ -137,14 +138,14 @@ func (this *cleanService) CleanBegin(id int64, code string) (int64, error) {
 	return debug_id, err
 }
 
-func (this *cleanService) CleanHeart(id, debug_id, user_id int64) interface{} {
+func (this *cleanService) CleanHeart(id, debug_id int64) interface{} {
 	if id == 0 || debug_id == 0 {
 		return ""
 	}
 	model, _ := this.repo.GetRowByID(id)
 	var logList []common.LogLevel
 	var dataList []map[string]interface{}
-	token := helper.NewToken(user_id, id, debug_id).Clean().ToString()
+	token := helper.NewToken(model.UserId, id, debug_id).Clean().ToString()
 	dataTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, token)
 	logTable := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_LOG, token)
 	lcnl := &queue.Channel{
@@ -209,13 +210,14 @@ Loop:
 }
 
 //终止调试
-func (this *cleanService) CleanEnd(id int64, debug_id int64, user_id int64) error {
+func (this *cleanService) CleanEnd(id int64, debug_id int64) error {
 	if id == 0 || debug_id == 0 {
 		return errors.New("缺少参数")
 	}
+	row, _ := this.repo.GetRowByID(id)
 	cm := &common.Communication{
 		AppId:   id,
-		UserId:  user_id,
+		UserId:  row.UserId,
 		DebugId: debug_id,
 		Method:  common.METHOD_DEBUG,
 		Abort:   true,

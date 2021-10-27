@@ -123,7 +123,7 @@ type ApplicationImp interface {
 	ModifyCleanToken(id int64, token string) error
 	GetRowByID(id int64) (*Application, error)
 	PostList(req *helper.RequestParams) string
-	ModifyItem(id int64, item *Application) error
+	ModifyItem(id int64, user_id int64, item *Application) error
 	Remove(id int64) error
 	ModifyCrawlerContent(id int64, content string) error
 	ModifyCleanContent(id int64, content string) error
@@ -215,7 +215,7 @@ func (this *application) assembleTable(query *xorm.Session, req *helper.RequestP
 		Models: items,
 	}
 }
-func (this *application) ModifyItem(id int64, item *Application) error {
+func (this *application) ModifyItem(id int64, user_id int64, item *Application) error {
 	var err error
 	if id == 0 {
 		if len(item.Title) == 0 {
@@ -224,7 +224,7 @@ func (this *application) ModifyItem(id int64, item *Application) error {
 		if item.Method == 0 {
 			return errors.New("请选择数据存储方式")
 		}
-		item.UserId = 0
+		item.UserId = user_id
 		item.Status = common.STATUS_NORMAL
 		item.CreatedAt = time.Now().Unix()
 		_, err = this.session.InsertOne(item)

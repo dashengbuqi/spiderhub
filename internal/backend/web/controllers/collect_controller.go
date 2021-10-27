@@ -4,6 +4,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/backend/web/services"
 	"github.com/dashengbuqi/spiderhub/internal/backend/widgets"
+	"github.com/dashengbuqi/spiderhub/internal/common"
 	"github.com/kataras/iris/v12"
 	"github.com/kataras/iris/v12/mvc"
 	"github.com/kataras/iris/v12/sessions"
@@ -64,7 +65,8 @@ func (this *CollectController) GetEdit() {
 func (this *CollectController) PostEdit() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	form := this.Ctx.FormValues()
-	err := this.Service.ModifyCollectItem(id, form)
+	user_id := this.Session.GetInt64Default(common.USER_ID, 0)
+	err := this.Service.ModifyCollectItem(id, user_id, form)
 	if err != nil {
 		return helper.ResultError(err.Error())
 	}
@@ -114,7 +116,7 @@ func (this *CollectController) PostBegin() string {
 func (this *CollectController) GetHeart() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
-	res := this.Service.CrawlerHeart(id, debug_id, 0)
+	res := this.Service.CrawlerHeart(id, debug_id)
 	return helper.ResultSuccess("SUCCESS", res)
 }
 
@@ -122,7 +124,7 @@ func (this *CollectController) GetHeart() string {
 func (this *CollectController) PutEnd() string {
 	id, _ := this.Ctx.URLParamInt64("id")
 	debug_id, _ := this.Ctx.URLParamInt64("debug_id")
-	err := this.Service.CrawlerEnd(id, debug_id, 0)
+	err := this.Service.CrawlerEnd(id, debug_id)
 	if err != nil {
 		return helper.ResultError(err.Error())
 	}
