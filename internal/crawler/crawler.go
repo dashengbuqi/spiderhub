@@ -19,19 +19,19 @@ const (
 
 const (
 	APP_NAME      = "name"
-	MAX_LIMIT     = "maxLimit"
+	MAX_LIMIT     = "max_limit"
 	DOMAIN        = "domains"
-	SCAN_URLS     = "scanUrls"
-	CONTENT_REGEX = "contentRegex"
-	HELPER_REGEX  = "helperRegex"
+	SCAN_URLS     = "scan_urls"
+	CONTENT_REGEX = "content_regex"
+	HELPER_REGEX  = "helper_regex"
 	FIELDS        = "fields"
 	TIMEOUT       = "timeout"
 	COOKIE        = "cookie"
 	//CONFIG_JS_ENGINE        = "js_engine"
 	//CONFIG_ENABLEJS         = "enable_js"
-	USERAGENT          = "userAgent"
-	ACCEPT_HTTP_STATUS = "acceptHttpStatus"
-	AUTOFIND_URLS      = "autoFindUrls"
+	USERAGENT          = "user_agent"
+	ACCEPT_HTTP_STATUS = "accept_http_status"
+	AUTOFIND_URLS      = "auto_find_urls"
 	DELAY              = "delay"
 	//CONFIG_VISIT_TYPE       = "visit_type"
 
@@ -202,11 +202,11 @@ type FieldStash struct {
 	//SelectorType.XPath 一般针对html网页或xml，查看教程
 	//SelectorType.JsonPath 针对json数据，查看教程
 	//SelectorType.Regex 可以针对一切文本，查看教程
-	SelectorType int `json:"selectorType"`
+	SelectorType int `json:"selector_type"`
 	//抽取规则 如果selector为空或者未设置，则抽取的值为null，在进行required的判定之前，仍会进行afterExtractField回调。
 	Selector string `json:"selector"`
 	//内容类型 0:text 1:html
-	BodyType int `json:"bodyType"`
+	BodyType int `json:"body_type"`
 	// 抽取项的子抽取项。
 	//field支持子项，可以设置多层级，方便数据以本身的层级方式存储，而不用全部展开到第一层级。
 	//注意：
@@ -272,16 +272,16 @@ const (
 type CrawlerConfig struct {
 	Name             string           `json:"name"`
 	Domains          []interface{}    `json:"domains"`
-	MaxLimit         int              `json:"maxLimit"`
-	ScanUrls         []interface{}    `json:"scanUrls"`
-	HelperRegex      []*regexp.Regexp `json:"helperRegex"`
-	ContentRegex     []*regexp.Regexp `json:"contentRegex"`
+	MaxLimit         int              `json:"max_limit"`
+	ScanUrls         []interface{}    `json:"scan_urls"`
+	HelperRegex      []*regexp.Regexp `json:"helper_regex"`
+	ContentRegex     []*regexp.Regexp `json:"content_regex"`
 	Fields           []*FieldStash    `json:"fields"`
 	Timeout          int64            `json:"timeout"`
 	Delay            int64            `json:"delay"`
-	UserAgent        int              `json:"userAgent"`
-	AcceptHttpStatus []int            `json:"acceptHttpStatus"`
-	AutoFindUrls     bool             `json:"autoFindUrls"`
+	UserAgent        int              `json:"user_agent"`
+	AcceptHttpStatus []int            `json:"accept_http_status"`
+	AutoFindUrls     bool             `json:"auto_find_urls"`
 }
 
 type Application struct {
