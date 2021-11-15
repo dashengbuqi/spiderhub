@@ -251,10 +251,10 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 			}
 		} else if field.ExtractMethod == EXTRACT_NORMAL {
 			var item interface{}
-			if field.Type == TYPE_STRING {
-				item = helper.ExtractItem(body, field.Selector, field.SelectorType)
-			} else {
+			if field.BodyType == BODY_HTML {
 				item = helper.ExtractHtml(body, field.Selector, field.SelectorType)
+			} else {
+				item = helper.ExtractItem(body, field.Selector, field.SelectorType)
 			}
 			//如果必须要有值且为空的情况直接返回
 			if field.Required && item == nil {

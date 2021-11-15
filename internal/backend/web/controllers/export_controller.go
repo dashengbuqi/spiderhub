@@ -73,7 +73,13 @@ func (this *ExportController) GetDownload() {
 		for i, item := range data {
 			for name, value := range item {
 				if _, ok := headMap[name]; ok {
-					f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), value.(map[string]interface{})["value"])
+					tp := value.(map[string]interface{})["type"]
+					if tp == "map" || tp == "array" {
+						vStr, _ := json.Marshal(value.(map[string]interface{})["value"])
+						f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), string(vStr))
+					} else {
+						f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), value.(map[string]interface{})["value"])
+					}
 				}
 			}
 		}
