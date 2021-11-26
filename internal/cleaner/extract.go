@@ -50,10 +50,19 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 	}
 
 	if fieldType == TYPE_STRING {
-		result = &common.FieldData{
-			Alias: field.Alias,
-			Type:  fieldType,
-			Value: value.String(),
+		if len(field.Func) > 0 {
+			val, _ := this.container.Call(field.Func, nil, value.String())
+			result = &common.FieldData{
+				Alias: field.Alias,
+				Type:  fieldType,
+				Value: val,
+			}
+		} else {
+			result = &common.FieldData{
+				Alias: field.Alias,
+				Type:  fieldType,
+				Value: value.String(),
+			}
 		}
 	} else if fieldType == TYPE_MAP {
 		//检查是否有子项
@@ -65,11 +74,21 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 					subResult[subField.Name] = this.recursExtract(subValue, subField)
 				}
 			}
-			result = &common.FieldData{
-				Alias: field.Alias,
-				Type:  fieldType,
-				Value: subResult,
+			if len(field.Func) > 0 {
+				val, _ := this.container.Call(field.Func, nil, value)
+				result = &common.FieldData{
+					Alias: field.Alias,
+					Type:  fieldType,
+					Value: val,
+				}
+			} else {
+				result = &common.FieldData{
+					Alias: field.Alias,
+					Type:  fieldType,
+					Value: subResult,
+				}
 			}
+
 		} else {
 			if value.IsObject() {
 				var err error
@@ -81,10 +100,19 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 						spiderhub.Logger.Error("%s", err.Error())
 					}
 				}
-				result = &common.FieldData{
-					Alias: field.Alias,
-					Type:  fieldType,
-					Value: subResult,
+				if len(field.Func) > 0 {
+					val, _ := this.container.Call(field.Func, nil, value)
+					result = &common.FieldData{
+						Alias: field.Alias,
+						Type:  fieldType,
+						Value: val,
+					}
+				} else {
+					result = &common.FieldData{
+						Alias: field.Alias,
+						Type:  fieldType,
+						Value: subResult,
+					}
 				}
 			}
 		}
@@ -104,11 +132,21 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 					subResult = append(subResult, mapVal)
 				}
 			}
-			result = &common.FieldData{
-				Alias: field.Alias,
-				Type:  fieldType,
-				Value: subResult,
+			if len(field.Func) > 0 {
+				val, _ := this.container.Call(field.Func, nil, value)
+				result = &common.FieldData{
+					Alias: field.Alias,
+					Type:  fieldType,
+					Value: val,
+				}
+			} else {
+				result = &common.FieldData{
+					Alias: field.Alias,
+					Type:  fieldType,
+					Value: subResult,
+				}
 			}
+
 		} else {
 			if value.IsObject() {
 				var subResult []interface{}
@@ -118,10 +156,19 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 						subResult = append(subResult, val.String())
 					}
 				}
-				result = &common.FieldData{
-					Alias: field.Alias,
-					Type:  fieldType,
-					Value: subResult,
+				if len(field.Func) > 0 {
+					val, _ := this.container.Call(field.Func, nil, value)
+					result = &common.FieldData{
+						Alias: field.Alias,
+						Type:  fieldType,
+						Value: val,
+					}
+				} else {
+					result = &common.FieldData{
+						Alias: field.Alias,
+						Type:  fieldType,
+						Value: subResult,
+					}
 				}
 			}
 		}
