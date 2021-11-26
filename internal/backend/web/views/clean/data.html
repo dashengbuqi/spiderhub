@@ -41,6 +41,9 @@
                         {
                             title: '{{.Alias}}', field: '{{.Name}}', width: $(this).width() * 0.05, align: 'center', halign: 'center',
                             formatter:function (data,item) {
+                                if (data == null) {
+                                    return "";
+                                }
                                 if (data.type == "string") {
                                     var dd=data.value.replace(/<\/?.+?>/g,"");
                                     var dds=dd.replace(/ /g,"");//dds为得到后的内容

@@ -55,7 +55,7 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 			result = &common.FieldData{
 				Alias: field.Alias,
 				Type:  fieldType,
-				Value: val,
+				Value: val.String(),
 			}
 		} else {
 			result = &common.FieldData{
@@ -75,11 +75,16 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				}
 			}
 			if len(field.Func) > 0 {
-				val, _ := this.container.Call(field.Func, nil, value)
+				val, _ := this.container.Call(field.Func, nil, subResult)
+				callVal := make(map[string]interface{})
+				for _, key := range val.Object().Keys() {
+					cv, _ := val.Object().Get(key)
+					callVal[key] = cv.String()
+				}
 				result = &common.FieldData{
 					Alias: field.Alias,
 					Type:  fieldType,
-					Value: val,
+					Value: callVal,
 				}
 			} else {
 				result = &common.FieldData{
@@ -101,11 +106,16 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 					}
 				}
 				if len(field.Func) > 0 {
-					val, _ := this.container.Call(field.Func, nil, value)
+					val, _ := this.container.Call(field.Func, nil, subResult)
+					callVal := make(map[string]interface{})
+					for _, key := range val.Object().Keys() {
+						cv, _ := val.Object().Get(key)
+						callVal[key] = cv.String()
+					}
 					result = &common.FieldData{
 						Alias: field.Alias,
 						Type:  fieldType,
-						Value: val,
+						Value: callVal,
 					}
 				} else {
 					result = &common.FieldData{
@@ -133,11 +143,16 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				}
 			}
 			if len(field.Func) > 0 {
-				val, _ := this.container.Call(field.Func, nil, value)
+				val, _ := this.container.Call(field.Func, nil, subResult)
+				var callVal []interface{}
+				for _, key := range val.Object().Keys() {
+					cv, _ := val.Object().Get(key)
+					callVal = append(callVal, cv.String())
+				}
 				result = &common.FieldData{
 					Alias: field.Alias,
 					Type:  fieldType,
-					Value: val,
+					Value: callVal,
 				}
 			} else {
 				result = &common.FieldData{
@@ -153,15 +168,20 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				for _, key := range value.Object().Keys() {
 					val, _ := value.Object().Get(key)
 					if val.IsObject() == false {
-						subResult = append(subResult, val.String())
+						subResult = append(subResult, val)
 					}
 				}
 				if len(field.Func) > 0 {
-					val, _ := this.container.Call(field.Func, nil, value)
+					val, _ := this.container.Call(field.Func, nil, subResult)
+					var callVal []interface{}
+					for _, key := range val.Object().Keys() {
+						cv, _ := val.Object().Get(key)
+						callVal = append(callVal, cv.String())
+					}
 					result = &common.FieldData{
 						Alias: field.Alias,
 						Type:  fieldType,
-						Value: val,
+						Value: callVal,
 					}
 				} else {
 					result = &common.FieldData{
