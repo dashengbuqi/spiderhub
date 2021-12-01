@@ -168,8 +168,8 @@ const (
 	TYPE_MAP    = "map"
 	TYPE_INT    = "int"
 
-	BODY_TEXT = 0
-	BODY_HTML = 1
+	BODY_TEXT = "text"
+	BODY_HTML = "html"
 )
 
 var (
@@ -206,7 +206,7 @@ type FieldStash struct {
 	//抽取规则 如果selector为空或者未设置，则抽取的值为null，在进行required的判定之前，仍会进行afterExtractField回调。
 	Selector string `json:"selector"`
 	//内容类型 0:text 1:html
-	BodyType int `json:"body_type"`
+	BodyType string `json:"body_type"`
 	// 抽取项的子抽取项。
 	//field支持子项，可以设置多层级，方便数据以本身的层级方式存储，而不用全部展开到第一层级。
 	//注意：
