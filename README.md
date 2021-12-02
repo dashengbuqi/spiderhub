@@ -1,16 +1,19 @@
-# 配置文件设置
+spiderhub 支持 js 脚本编写规则实时调试抓取目标网站 
+
+
+### 配置文件设置
 - configs/ymls/params.yml
 
-# 数据库表结构
+### 数据库表结构
 - doc/dbs
 
-# 初始化
+### 初始化
 
 > go mod tidy
 
 > go mod vendor
 
-# 应用启动
+### 应用启动
 
 > 爬虫
 - cd cmd/crawler
