@@ -1,14 +1,14 @@
 Env: Dev
 Common:
   Dev:
-    AttachUrl: "http://192.168.1.40:8090"
-    AttachPath: "D:/attachment" #"/home/wwwroot/sensorexpert/application/attachment"
+    AttachUrl: http://192.168.1.40:8090
+    AttachPath: /home/wwwroot/sensorexpert/application/attachment
   Test:
-    AttachUrl: "http://192.168.1.45:8090"
-    AttachPath: "/home/wwwroot/sensorexpert/application/attachment"
+    AttachUrl: http://192.168.1.45:8090
+    AttachPath: /home/attachment
   Prod:
-    AttachUrl: "https://static.sensorexpert.com.cn"
-    AttachPath: "/home/wwwroot/sensorexpert/application/attachment"
+    AttachUrl: "http://static.spiderhub.net"
+    AttachPath: "/home/attachment"
 Log:
   Dev:
     Level: debug        #Emergency   Alert  Critical  Error  Warning  Info  Debug
@@ -26,9 +26,9 @@ Queue:
   Dev:
     Uri: "amqp://guest:guest@192.168.1.40:5672/"
   Test:
-    Uri: "amqp://guest:guest@192.168.1.40:5672/"
+    Uri: "amqp://guest:guest@127.0.0.1:5672/"
   Prod:
-    Uri: "amqp://guest:guest@192.168.1.40:5672/"
+    Uri: "amqp://guest:guest@127.0.0.1:5672/"
 Redis:
   Dev:
     Proto: tcp    #tcp|udp
@@ -41,7 +41,7 @@ Redis:
     Prefix: ""  #键名前缀
   Test:
     Proto: tcp    #tcp|udp
-    Addr: 192.168.1.40:6379
+    Addr: 127.0.0.1:6379
     Password: ""
     Db: 0
     MaxActive: 0     # 最大活动连接数，值为0时表示不限制
@@ -50,7 +50,7 @@ Redis:
     Prefix: ""  #键名前缀
   Prod:
     Proto: tcp    #tcp|udp
-    Addr: 192.168.1.40:6379
+    Addr: 127.0.0.1:6379
     Password: ""
     Db: 0
     MaxActive: 0     # 最大活动连接数，值为0时表示不限制
@@ -60,7 +60,7 @@ Redis:
 Mongo:
   Dev:
     Host: 192.168.1.40
-    Port: "27017"
+    Port: 27017
     User: ""
     Password: ""
     Dbs:
@@ -75,7 +75,7 @@ Mongo:
       - spider_main
       - spider_data
   Prod:
-    Host: 192.168.1.40
+    Host: 127.0.0.1
     Port: 27017
     User: ""
     Password: ""
@@ -86,19 +86,19 @@ Mysql:
   Dev:
     Host: 192.168.1.40:3306
     User: root
-    Password: "123456"
+    Password: 123456
     Dbs:
       - spiderhub
   Test:
-    Host: 192.168.1.40:3306
-    User: root
-    Password: "asd123"
+    Host: 127.0.0.1:3306
+    User:
+    Password: ""
     Dbs:
       - spiderhub
   Prod:
-    Host: 192.168.1.40:3306
-    User: "swiopr"
-    Password: "Sirui2019"
+    Host: 127.0.0.1:3306
+    User: ""
+    Password: ""
     Dbs:
       - spiderhub
 Backend:
