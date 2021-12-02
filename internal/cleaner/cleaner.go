@@ -201,6 +201,10 @@ func (this *Cleaner) initTable() {
 		}
 		items = append(items, table)
 	}
+	items = append(items, map[string]string{
+		"name":  "target_url",
+		"alias": "目标地址",
+	})
 	if len(items) > 0 {
 		itemStr, err := json.Marshal(items)
 		if err != nil {
