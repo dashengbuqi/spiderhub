@@ -27,3 +27,6 @@
 - go build
 - nohup ./backend &
 
+> 后台访问地址
+- http://127.0.0.1:8080
+- 用户名：test   密码：123456
