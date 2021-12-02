@@ -144,7 +144,13 @@ func (this *Cleaner) process(data interface{}) {
 			}
 		}
 	}
-	result["target_url"] = data.(map[string]interface{})["target_url"]
+	result["target_url"] = map[bool]*common.FieldData{
+		false: {
+			Type:  TYPE_STRING,
+			Value: data.(map[string]interface{})["target_url"],
+			Alias: "目标地址",
+		}}
+	//data.(map[string]interface{})["target_url"]
 	this.outData <- result
 }
 
