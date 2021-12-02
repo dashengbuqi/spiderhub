@@ -125,7 +125,7 @@ func (this *Spider) success(r *colly.Response) {
 			this.mu.Lock()
 			respData := this.extract(body, r.Request.URL.String())
 			if len(respData) > 0 {
-				respData["targetUrl"] = map[bool]interface{}{
+				respData["target_url"] = map[bool]interface{}{
 					false: r.Request.URL.String(),
 				}
 				this.outData <- respData

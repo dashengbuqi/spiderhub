@@ -108,7 +108,7 @@ func (this *Cleaner) process(data interface{}) {
 	row := make(map[string]interface{})
 	row["extract"] = map[string]interface{}{
 		"__id":   data.(map[string]interface{})["_id"].(primitive.ObjectID).String(),
-		"__url":  data.(map[string]interface{})["targetUrl"],
+		"__url":  data.(map[string]interface{})["target_url"],
 		"__time": data.(map[string]interface{})["created_at"],
 	}
 	delete(data.(map[string]interface{}), "_id")
@@ -144,6 +144,7 @@ func (this *Cleaner) process(data interface{}) {
 			}
 		}
 	}
+	result["target_url"] = data.(map[string]interface{})["target_url"]
 	this.outData <- result
 }
 
