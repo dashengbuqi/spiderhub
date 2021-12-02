@@ -33,3 +33,7 @@ spiderhub 支持 js 脚本编写规则实时调试抓取目标网站
 > 后台访问地址
 - http://127.0.0.1:8080
 - 用户名：test   密码：123456
+
+### demo
+- 爬虫： /crawler/demo/...
+- 清洗： /cleaner/demo/...
