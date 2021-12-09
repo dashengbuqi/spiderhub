@@ -60,7 +60,7 @@ Redis:
 Mongo:
   Dev:
     Host: 192.168.1.40
-    Port: 27017
+    Port: "27017"
     User: ""
     Password: ""
     Dbs:
@@ -68,7 +68,7 @@ Mongo:
       - spider_data
   Test:
     Host: 192.168.1.40
-    Port: 27017
+    Port: "27017"
     User: ""
     Password: ""
     Dbs:
@@ -76,7 +76,7 @@ Mongo:
       - spider_data
   Prod:
     Host: 127.0.0.1
-    Port: 27017
+    Port: "27017"
     User: ""
     Password: ""
     Dbs:
@@ -86,7 +86,7 @@ Mysql:
   Dev:
     Host: 192.168.1.40:3306
     User: root
-    Password: 123456
+    Password: "123456"
     Dbs:
       - spiderhub
   Test:
