@@ -48,7 +48,7 @@
                         formatter : function(value, rec) {
                             var str = "";
                             str += '<a href="javascript:void(0)" onclick="start(' + rec.id +');" id="start-collect">开始采集</a>&nbsp;&nbsp;';
-                            str += '<a href="javascript:void(0)" onclick="debug(' + rec.id +');">调试</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="debug(' + rec.id +',\''+rec.title+'\');">调试</a>&nbsp;&nbsp;';
                             str += '<a href="javascript:void(0)" onclick="update(' + rec.id +');">修改</a>&nbsp;&nbsp;';
                             str += '<a href="javascript:void(0)" onclick="del(' + rec.id + ');">删除</a> ';
                             str += '<a href="javascript:void(0)" onclick="view(' + rec.id +',\''+rec.title+'\');">查看数据</a>&nbsp;&nbsp;';
@@ -65,7 +65,7 @@
     });
 
     function view(id,title) {
-        addTab(title,"/collect/data?id="+id,"",true);
+        addTab(title+"【数据】","/collect/data?id="+id,"",true);
     }
     var _INTERVAL ='';
     //存储数据
@@ -114,8 +114,8 @@
         },2000);
     }
     
-    function debug(id) {
-        addTab("数据采集","/collect/debug?id="+id);
+    function debug(id,title) {
+        addTab("【"+title+"】数据调试","/collect/debug?id="+id);
     }
 
     function add() {

@@ -47,7 +47,7 @@
                         formatter : function(value, rec) {
                             var str = "";
                             str += '<a href="javascript:void(0)" onclick="start(' + rec.id +');">开始清洗</a>&nbsp;&nbsp;';
-                            str += '<a href="javascript:void(0)" onclick="debug(' + rec.id +');">调试</a>&nbsp;&nbsp;';
+                            str += '<a href="javascript:void(0)" onclick="debug(' + rec.id +',\''+rec.title+'\');">调试</a>&nbsp;&nbsp;';
                             str += '<a href="javascript:void(0)" onclick="view(' + rec.id +',\''+rec.title+'\');">查看数据</a>&nbsp;&nbsp;';
                             return str;
                         }
@@ -107,8 +107,8 @@
         },2000);
     }
 
-    function debug(id) {
-        addTab("数据采集","/clean/debug?id="+id);
+    function debug(id,title) {
+        addTab("【"+title+"】清洗调试","/clean/debug?id="+id);
     }
 </script>
 <style>
