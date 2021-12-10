@@ -72,7 +72,8 @@ func (this *ExportController) GetDownload() {
 		}
 		for i, item := range data {
 			for name, value := range item {
-				if _, ok := headMap[name]; ok {
+				fmt.Println(value)
+				if _, ok := headMap[name]; ok && value != nil {
 					tp := value.(map[string]interface{})["type"]
 					if tp == "map" || tp == "array" {
 						vStr, _ := json.Marshal(value.(map[string]interface{})["value"])
