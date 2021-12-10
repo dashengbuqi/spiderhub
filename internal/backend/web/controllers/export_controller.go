@@ -72,7 +72,6 @@ func (this *ExportController) GetDownload() {
 		}
 		for i, item := range data {
 			for name, value := range item {
-				fmt.Println(value)
 				if _, ok := headMap[name]; ok && value != nil {
 					tp := value.(map[string]interface{})["type"]
 					if tp == "map" || tp == "array" {
