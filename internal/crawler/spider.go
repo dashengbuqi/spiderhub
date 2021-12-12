@@ -12,6 +12,9 @@ import (
 	"github.com/robertkrimen/otto"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -128,12 +131,31 @@ func (this *Spider) Run() {
 	//加载入口
 	if _, ok := this.params[SCAN_URLS]; ok {
 		for _, u := range this.params[SCAN_URLS].([]string) {
-			this.outLog <- common.FmtLog(common.LOG_INFO, u, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
-			uf, _ := url.QueryUnescape(u)
-			err := this.queue.AddURL(uf)
-			if err != nil {
-				this.outLog <- common.FmtLog(common.LOG_ERROR, u, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+			//正则检查是否有批量入口
+			reg := regexp.MustCompile(`{(\d+)-(\d+)}`)
+			matRes := reg.FindStringSubmatch(u)
+			if len(matRes) > 0 {
+				origin := matRes[0]
+				start, _ := strconv.Atoi(matRes[1])
+				end, _ := strconv.Atoi(matRes[2])
+				for i := start; i <= end; i++ {
+					uri := strings.Replace(u, origin, strconv.Itoa(i), -1)
+					this.outLog <- common.FmtLog(common.LOG_INFO, uri, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+					uf, _ := url.QueryUnescape(uri)
+					err := this.queue.AddURL(uf)
+					if err != nil {
+						this.outLog <- common.FmtLog(common.LOG_ERROR, uri, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+					}
+				}
+			} else {
+				this.outLog <- common.FmtLog(common.LOG_INFO, u, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+				uf, _ := url.QueryUnescape(u)
+				err := this.queue.AddURL(uf)
+				if err != nil {
+					this.outLog <- common.FmtLog(common.LOG_ERROR, u, common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
+				}
 			}
+
 		}
 	}
 	err = this.queue.Run(sp)
