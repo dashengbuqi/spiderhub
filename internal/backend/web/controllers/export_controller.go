@@ -55,7 +55,7 @@ func (this *ExportController) GetDownload() {
 	table := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, app.CleanToken)
 	cd := spiderhub_data.NewCollectData(table)
 	var page int64 = 1
-	var pageSize int64 = 100
+	var pageSize int64 = 500
 	f := excelize.NewFile()
 	sheet := f.NewSheet(app.Title)
 	//设置头
