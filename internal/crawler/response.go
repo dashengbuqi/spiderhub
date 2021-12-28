@@ -163,13 +163,12 @@ func (this *Spider) extract(body string, curl string) map[string]interface{} {
 				data := this.recursExtract(body, field, curl)
 				if data == nil {
 					this.outLog <- common.FmtLog("异常", "字段:"+field.Name, common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
-					break
+					continue
 				}
 				result[field.Name] = data
 			}
 		}
 	}
-
 	//整个网页完成抽取时回调此函数。一般在此回调中做一些数据整理的操作 FUNC_AFTER_EXTRACT_PAGE
 	if res, err := this.container.Call(FUNC_AFTER_EXTRACT_PAGE, nil, result); err == nil {
 		if res.IsDefined() {

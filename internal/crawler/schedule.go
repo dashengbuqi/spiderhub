@@ -10,6 +10,7 @@ import (
 	"github.com/dashengbuqi/spiderhub/persistence/mongo/spiderhub_data"
 	"github.com/dashengbuqi/spiderhub/persistence/mysql/collect"
 	"github.com/robertkrimen/otto"
+	"reflect"
 	"sync"
 	"time"
 )
@@ -206,7 +207,20 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 		data := make(map[string]interface{})
 		for key, val := range body {
 			for _, v := range val.(map[bool]interface{}) {
-				data[key] = v
+				if reflect.TypeOf(v).Kind() == reflect.Map {
+					for kk, vv := range v.(map[string]map[bool]interface{}) {
+						for _, vvv := range vv {
+							data[key] = map[string]interface{}{
+								"children": map[string]interface{}{
+									kk: vvv,
+								},
+							}
+						}
+					}
+				} else {
+					data[key] = v
+				}
+
 			}
 		}
 		res, _ := json.Marshal(data)
