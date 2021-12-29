@@ -205,23 +205,28 @@ func (this *Schedule) pushLog(body []byte, debug bool) error {
 func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 	if debug {
 		data := make(map[string]interface{})
-		for key, val := range body {
-			for _, v := range val.(map[bool]interface{}) {
+		for field, value := range body {
+			for _, val := range value.(map[bool]interface{}) {
+				if reflect.TypeOf(val).Kind() == reflect.Map {
+					for _, v := range val.(map[string]interface{}) {
+						data[field] = v
+					}
+				} else {
+					data[field] = val
+				}
+			}
+			/*for has, v := range value.(map[bool]interface{}) {
 				if reflect.TypeOf(v).Kind() == reflect.Map {
-					for kk, vv := range v.(map[string]map[bool]interface{}) {
-						for _, vvv := range vv {
-							data[key] = map[string]interface{}{
-								"children": map[string]interface{}{
-									kk: vvv,
-								},
+					for _, vv := range v.(map[string]interface{}) {
+							data[key] = map[bool]interface{}{
+								has:vv,
 							}
-						}
 					}
 				} else {
 					data[key] = v
 				}
 
-			}
+			}*/
 		}
 		res, _ := json.Marshal(data)
 		err := this.rabbitConn.Publish(this.dataQueue, res)
@@ -234,19 +239,16 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 	data := make(map[string]interface{})
 	for field, value := range body {
 		if reflect.TypeOf(value).Kind() == reflect.Map {
-			for kk, vv := range value.(map[string]map[bool]interface{}) {
-				for _, vvv := range vv {
-					data[field] = map[string]interface{}{
-						"children": map[string]interface{}{
-							kk: vvv,
-						},
+			for _, val := range value.(map[bool]interface{}) {
+				if reflect.TypeOf(val).Kind() == reflect.Map {
+					for _, v := range val.(map[string]map[bool]interface{}) {
+						data[field] = v
 					}
+				} else {
+					data[field] = value
 				}
 			}
-		} else {
-			data[field] = value
 		}
-		//data[field] = value.(map[bool]interface{})
 	}
 	data["app_id"] = map[bool]interface{}{
 		false: this.inData.AppId,

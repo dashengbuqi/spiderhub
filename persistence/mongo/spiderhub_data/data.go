@@ -144,13 +144,13 @@ func dataFormat(data map[string]interface{}) (*primary, interface{}) {
 	p := new(primary)
 	n := make(map[string]interface{})
 
-	for key, value := range data {
+	for field, value := range data {
 		for isPrimary, val := range value.(map[bool]interface{}) {
-			if isPrimary {
-				p.field = key
+			if isPrimary == true {
+				p.field = field
 				p.value = val
 			}
-			n[key] = val
+			n[field] = val
 		}
 	}
 	return p, n

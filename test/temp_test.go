@@ -25,3 +25,20 @@ func TestCompile(t *testing.T) {
 		t.Log(strings.Replace(scan, old, strconv.Itoa(i), -1))
 	}
 }
+
+func TestInterface(t *testing.T) {
+	var m interface{}
+	m = map[string]interface{}{
+		"key1": map[bool]interface{}{
+			false: "val1",
+		},
+		"key2": map[bool]map[string]interface{}{
+			false: {
+				"hello": "world",
+			},
+		},
+	}
+	for _, val := range m.(map[string]interface{}) {
+		t.Log(val)
+	}
+}

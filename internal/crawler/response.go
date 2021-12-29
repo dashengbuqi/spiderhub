@@ -243,8 +243,22 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 					for _, subField := range field.Children {
 						subData[subField.Name] = this.recursExtract(subBody, subField, curl)
 					}
-					data = map[bool]interface{}{
-						field.Primary: subData,
+					if len(subData) > 0 {
+						for f, val := range subData {
+							for has, v := range val {
+								if has == true {
+									data = map[bool]interface{}{
+										field.Primary: v,
+									}
+								} else {
+									data = map[bool]interface{}{
+										false: map[string]interface{}{
+											f: v,
+										},
+									}
+								}
+							}
+						}
 					}
 				}
 			}
@@ -296,9 +310,26 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 				for _, subField := range field.Children {
 					subData[subField.Name] = this.recursExtract(body, subField, curl)
 				}
-				data = map[bool]interface{}{
-					field.Primary: subData,
+				if len(subData) > 0 {
+					for f, val := range subData {
+						for has, v := range val {
+							if has == true {
+								data = map[bool]interface{}{
+									field.Primary: v,
+								}
+							} else {
+								data = map[bool]interface{}{
+									false: map[string]interface{}{
+										f: v,
+									},
+								}
+							}
+						}
+					}
 				}
+				/*data = map[bool]interface{}{
+					field.Primary: subData,
+				}*/
 			}
 		}
 	} else if valueType == TYPE_ARRAY {
