@@ -233,7 +233,20 @@ func (this *Schedule) pushData(body map[string]interface{}, debug bool) error {
 	//数据持久化
 	data := make(map[string]interface{})
 	for field, value := range body {
-		data[field] = value.(map[bool]interface{})
+		if reflect.TypeOf(value).Kind() == reflect.Map {
+			for kk, vv := range value.(map[string]map[bool]interface{}) {
+				for _, vvv := range vv {
+					data[field] = map[string]interface{}{
+						"children": map[string]interface{}{
+							kk: vvv,
+						},
+					}
+				}
+			}
+		} else {
+			data[field] = value
+		}
+		//data[field] = value.(map[bool]interface{})
 	}
 	data["app_id"] = map[bool]interface{}{
 		false: this.inData.AppId,
