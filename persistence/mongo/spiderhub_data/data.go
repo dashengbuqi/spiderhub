@@ -2,7 +2,6 @@ package spiderhub_data
 
 import (
 	"context"
-	"fmt"
 	"github.com/dashengbuqi/spiderhub"
 	"github.com/dashengbuqi/spiderhub/helper"
 	"github.com/dashengbuqi/spiderhub/internal/common"
@@ -81,11 +80,9 @@ func (this *CollectData) RemoveRows() error {
 	return err
 }
 
-func (this *CollectData) GetRowsBy(page int64, pageSize int64) ([]map[string]interface{}, error) {
+func (this *CollectData) GetRowsBy(pageSize int64) ([]map[string]interface{}, error) {
 	items := make([]map[string]interface{}, 0)
-	skip := (page - 1) * pageSize
-	fmt.Println(skip, pageSize)
-	err := this.collect.Find(this.ctx, bson.M{}).Skip(skip).Limit(pageSize).All(&items)
+	err := this.collect.Find(this.ctx, bson.M{}).Limit(pageSize).All(&items)
 	return items, err
 }
 

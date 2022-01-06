@@ -54,8 +54,7 @@ func (this *ExportController) GetDownload() {
 	app := this.Service.GetRowBy(id)
 	table := fmt.Sprintf("%s%s", common.PREFIX_CLEAN_DATA, app.CleanToken)
 	cd := spiderhub_data.NewCollectData(table)
-	var page int64 = 1
-	var pageSize int64 = 500
+	var pageSize int64 = 10000
 	f := excelize.NewFile()
 	sheet := f.NewSheet(app.Title)
 	//设置头
@@ -65,30 +64,24 @@ func (this *ExportController) GetDownload() {
 		f.SetCellValue(app.Title, c+"1", head.Alias+"|"+head.Name)
 		headMap[head.Name] = c
 	}
-	for {
-		data, _ := cd.GetRowsBy(page, pageSize)
-		if len(data) == 0 {
-			break
-		}
-		for i, item := range data {
-			for name, value := range item {
-				if _, ok := headMap[name]; ok {
-					if value != nil {
-						tp := value.(map[string]interface{})["type"]
-						if tp == "map" || tp == "array" {
-							vStr, _ := json.Marshal(value.(map[string]interface{})["value"])
-							f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), string(vStr))
-						} else {
-							f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), value.(map[string]interface{})["value"])
-						}
+	data, _ := cd.GetRowsBy(pageSize)
+	for i, item := range data {
+		for name, value := range item {
+			if _, ok := headMap[name]; ok {
+				if value != nil {
+					tp := value.(map[string]interface{})["type"]
+					if tp == "map" || tp == "array" {
+						vStr, _ := json.Marshal(value.(map[string]interface{})["value"])
+						f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), string(vStr))
 					} else {
-						f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), "")
+						f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), value.(map[string]interface{})["value"])
 					}
-
+				} else {
+					f.SetCellValue(app.Title, headMap[name]+strconv.Itoa(i+2), "")
 				}
+
 			}
 		}
-		page++
 	}
 	f.SetActiveSheet(sheet)
 	this.Ctx.ResponseWriter().Header().Set("Content-Type", "application/octet-stream")
