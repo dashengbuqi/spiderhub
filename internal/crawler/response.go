@@ -316,6 +316,9 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 			if field.Required && item == nil {
 				return nil
 			}
+			if item == nil {
+				item = ""
+			}
 			//临时字段
 			if field.Temporary {
 				if res, err := this.container.Call(FUNC_AFTER_EXTRACT_TEMPORARY_FIELD, nil, item); err == nil {
