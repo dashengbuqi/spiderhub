@@ -150,7 +150,7 @@ func (this *Spider) extract(body string, curl string) map[string]interface{} {
 			if ok {
 				err = errors.New(str)
 			} else {
-				err = errors.New("异常提取内容")
+				err = errors.New("提取内容")
 			}
 			this.outLog <- common.FmtLog("异常", err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
@@ -193,7 +193,7 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 			if ok {
 				err = errors.New(str)
 			} else {
-				err = errors.New("异常提取内容")
+				err = errors.New("提取内容")
 			}
 			this.outLog <- common.FmtLog("异常", err.Error(), common.LOG_LEVEL_ERROR, common.LOG_TYPE_SYSTEM)
 		}
@@ -206,10 +206,53 @@ func (this *Spider) recursExtract(body string, field FieldStash, curl string) ma
 	}
 	//字符串处理
 	if valueType == TYPE_STRING {
-		if field.ExtractMethod == EXTRACT_ATTACHEDURL {
+		//根据当前的url生成新的URL 常用于异步请求，根据当前的URL中的ID 组合新的URL,必须有回调函数
+		if field.ExtractMethod == EXTRACT_URLCONTEXT {
+			var full string
+			if len(field.Func) > 0 {
+				uri, _ := this.container.Call(field.Func, nil, "", curl)
+				full = uri.String()
+			}
+			if len(full) == 0 {
+				data = map[bool]interface{}{
+					field.Primary: "",
+				}
+			} else {
+				requestMethod := "GET"
+				if len(field.AttachedMethod) > 0 {
+					requestMethod = field.AttachedMethod
+				}
+				var header http.Header
+				if len(field.AttachedHeaders) > 0 {
+					for k, v := range field.AttachedHeaders {
+						header.Add(k, v)
+					}
+				}
+				subBody := this.outSite(full, requestMethod, header)
+				if len(subBody) > 0 {
+					subData := make(map[string]map[bool]interface{})
+					for _, subField := range field.Children {
+						subData[subField.Name] = this.recursExtract(subBody, subField, full)
+					}
+					if len(subData) > 0 {
+						for _, val := range subData {
+							for has, v := range val {
+								data = map[bool]interface{}{
+									has: v,
+								}
+							}
+						}
+					}
+				} else {
+					data = map[bool]interface{}{
+						field.Primary: "",
+					}
+				}
+			}
+		} else if field.ExtractMethod == EXTRACT_ATTACHEDURL {
 			//表示需要的数据在另外一个链接（我们叫attachedUrl）的请求结果里面，需要额外再发一次请求来获取数据。
 			u := helper.ExtractItem(body, field.Selector, field.SelectorType)
-			if len(u.(string)) == 0 {
+			if u == nil || len(u.(string)) == 0 {
 				data = map[bool]interface{}{
 					field.Primary: "",
 				}
