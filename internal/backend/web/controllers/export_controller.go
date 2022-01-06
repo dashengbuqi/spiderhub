@@ -66,7 +66,7 @@ func (this *ExportController) GetDownload() {
 		headMap[head.Name] = c
 	}
 	for {
-		data, _ := cd.GetRowsBy((page-1)*pageSize, pageSize)
+		data, _ := cd.GetRowsBy(page, pageSize)
 		if len(data) == 0 {
 			break
 		}
