@@ -77,7 +77,7 @@ func (this *Cleaner) Run() {
 		}
 		skip = (page - 1) * limit
 		//获取爬虫数据
-		list, err := cd.GetRowsBy(skip, limit)
+		list, err := cd.GetRowsByPage(skip, limit)
 		if err != nil {
 			this.outLog <- common.FmtLog(common.LOG_ERROR, "获取分页数据错误:"+err.Error(), common.LOG_LEVEL_INFO, common.LOG_TYPE_SYSTEM)
 			continue

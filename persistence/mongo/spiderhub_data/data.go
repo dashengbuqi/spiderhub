@@ -80,6 +80,12 @@ func (this *CollectData) RemoveRows() error {
 	return err
 }
 
+func (this *CollectData) GetRowsByPage(skip, pageSize int64) ([]map[string]interface{}, error) {
+	items := make([]map[string]interface{}, 0)
+	err := this.collect.Find(this.ctx, bson.M{}).Skip(skip).Limit(pageSize).All(&items)
+	return items, err
+}
+
 func (this *CollectData) GetRowsBy(pageSize int64) ([]map[string]interface{}, error) {
 	items := make([]map[string]interface{}, 0)
 	err := this.collect.Find(this.ctx, bson.M{}).Limit(pageSize).All(&items)

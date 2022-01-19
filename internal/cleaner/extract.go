@@ -167,9 +167,10 @@ func (this *Extract) recursExtract(value otto.Value, field FieldStash) *common.F
 				var subResult []interface{}
 				for _, key := range value.Object().Keys() {
 					val, _ := value.Object().Get(key)
-					if val.IsObject() == false {
-						subResult = append(subResult, val)
-					}
+					//fmt.Println(val)
+					//if val.IsObject() == false {
+					subResult = append(subResult, val.String())
+					//}
 				}
 				if len(field.Func) > 0 {
 					val, _ := this.container.Call(field.Func, nil, subResult)
